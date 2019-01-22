@@ -1,0 +1,6 @@
+{% extends "policies/base_confirm_delete.html" %}
+
+{% block message %}
+    <h3>Are you sure you want to delete {{ node.get_type_display.lower }}</h3>
+    <h1>"{{ object }}"?</h1>
+{% endblock %}

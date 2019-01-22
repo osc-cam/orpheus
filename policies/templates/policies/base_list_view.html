@@ -1,0 +1,133 @@
+{% extends "policies/base_site.html" %}
+
+{% load staticfiles %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/orpheus-base-style.css' %}">
+<style>
+  .action-links-inline {
+    font-size: small;
+    font-weight: normal;
+    display: inline;
+    text-align: right;
+  }
+</style>
+{% endblock %}
+
+{% block searchbar %}
+<form class="form-inline my-2 my-lg-0" action="" method="GET">
+  {{ form }}
+  <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search {% block nodetype %}{% endblock %}</button>
+  </fieldset>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <form class="form-inline float-right" action="" method="GET">
+
+    </form>
+
+    <h1 style="display: inline">{% block nodetype1 %}{% endblock %}</h1>
+    <p class="action-links-inline">
+      {% block newnode %}<a href="{% url 'policies:node_add' %}">[add new]</a>{% endblock %}
+    </p>
+
+    <hr id="header-line">
+
+    {% block docstring %}{% endblock %}
+
+    {% if node_list %}
+    <ul style="list-style-type: none">
+
+      {% for node in node_list %}
+          <li>
+                <!--{% if node.vetted and not node.get_deletion_requests %}-->
+                    <!--<p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>-->
+                <!--{% elif node.get_deletion_requests %}-->
+                    <!--<p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>-->
+                <!--{% else %}-->
+                    <!--<p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>-->
+                <!--{% endif %}-->
+                {% if node.name_status == 'SYNONYM' %}
+                    <a href="{{ node.get_absolute_url }}">{{ node.name }}</a> accepted as
+                        <a href="{{ node.synonym_of.get_absolute_url }}">{{ node.synonym_of.name }}</a>
+                {% else %}
+                    <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>{% if node.children.all %} ({{ node.children.count }}){% endif %}
+                {% endif %}
+                <!--<!--{% if node.type == 'PUBLISHER' %}-->
+                  <!--<p class="action-links-inline">-->
+                    <!--<a href="">[view journals]</a>-->
+                  <!--</p>-->
+                <!--{% endif %}-->
+          </li>
+      {% endfor %}
+
+    </ul>
+    {% else %}
+      <p>No {% block nodetype2 %}{% endblock %} match your search.</p>
+    {% endif %}
+
+    <!--Inspiration:
+    https://simpleisbetterthancomplex.com/tutorial/2016/08/03/how-to-paginate-with-django.html
+    http://v4-alpha.getbootstrap.com/components/pagination/
+    https://stackoverflow.com/questions/13114753/paginate-search-results-listview
+    -->
+    {% if is_paginated %}
+      <ul class="pagination">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?search_text={{ request.GET.search_text}}&page={{ page_obj.previous_page_number }}">
+                    &laquo;</a>
+            </li>
+          {% endif %}
+
+          {% if paginator.num_pages > 11 and page_obj.number == 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?search_text={{ request.GET.search_text}}&page=1">1</a>
+            </li>
+          {% elif paginator.num_pages > 11 and page_obj.number > 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?search_text={{ request.GET.search_text}}&page=1">1</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+          {% endif %}
+
+          {% for i in paginator.page_range %}
+              {% if page_obj.number == i %}
+                <li class="page-item active">
+                    <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+                </li>
+              {% elif i > page_obj.number|add:'-6' and i < page_obj.number|add:'6' %} <!--http://disq.us/p/1nlcd9t-->
+                <li class="page-item">
+                    <a class="page-link" href="?search_text={{ request.GET.search_text}}&page={{ i }}">{{ i }}</a>
+                </li>
+              {% endif %}
+          {% endfor %}
+
+          {% if paginator.num_pages > 11 and page_obj.number == paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="?search_text={{ request.GET.search_text}}&page={{ paginator.num_pages }}">{{ paginator.num_pages }}</a>
+            </li>
+          {% elif paginator.num_pages > 11 and page_obj.number < paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?search_text={{ request.GET.search_text}}&page={{ paginator.num_pages }}">{{ paginator.num_pages }}</a>
+            </li>
+          {% endif %}
+
+          {% if page_obj.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?search_text={{ request.GET.search_text}}&page={{ page_obj.next_page_number }}">&raquo;</a>
+              </li>
+          {% endif %}
+
+      </ul>
+    {% endif %}
+
+</div>
+{% endblock %}

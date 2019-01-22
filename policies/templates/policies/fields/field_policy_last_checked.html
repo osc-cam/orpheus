@@ -1,0 +1,41 @@
+{% if policy.last_checked %}
+    <div class="row">
+        <div class="col-sm-4">Last checked</div>
+        {% if policy.checked_recently %}
+            <div class="col-sm-8">{{ policy.last_checked }}</div>
+        {% else %}
+            <div class="col-sm-8 text-danger">{{ policy.last_checked }}</div>
+        {% endif %}
+    </div>
+
+{% elif policy.vetted_date %}
+    <div class="row">
+        <div class="col-sm-4">Vetted on</div>
+        {% if policy.vetted_recently %}
+            <div class="col-sm-8">{{ policy.vetted_date }}</div>
+        {% else %}
+            <div class="col-sm-8 text-danger">{{ policy.vetted_date }}</div>
+        {% endif %}
+    </div>
+
+{% elif policy.updated %}
+    <div class="row">
+        <div class="col-sm-4">Last updated</div>
+        {% if policy.updated_recently %}
+            <div class="col-sm-8">{{ policy.updated }}</div>
+        {% else %}
+            <div class="col-sm-8 text-danger">{{ policy.updated }}</div>
+        {% endif %}
+    </div>
+
+{% elif policy.created %}
+    <div class="row">
+        <div class="col-sm-4">Created</div>
+        {% if policy.updated_recently %}
+            <div class="col-sm-8">{{ policy.created }}</div>
+        {% else %}
+            <div class="col-sm-8 text-danger">{{ policy.created }}</div>
+        {% endif %}
+    </div>
+
+{% endif %}

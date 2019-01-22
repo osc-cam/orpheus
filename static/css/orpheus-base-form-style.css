@@ -1,0 +1,52 @@
+p span {
+    display: block;
+}
+
+/* CLASS DEFINITIONS */
+
+.errornote {
+    font-size: 14px;
+    font-weight: 700;
+    display: block;
+    padding: 10px 12px;
+    margin: 0 0 10px 0;
+    color: #ba2121;
+    border: 1px solid #ba2121;
+    border-radius: 4px;
+    background-color: #fff;
+    background-position: 5px 12px;
+}
+
+.helptext {
+    font-size: small;
+    color: #808080;
+}
+
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+    padding-top: 4px;
+    padding-right: 6px;
+    padding-bottom: 4px;
+    padding-left: 6px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+
+    text-decoration: none;
+    color: initial;
+}
+
+
+ul.errorlist {
+    color: #ba2121;
+}
+
+ul.errorlist li {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* ID DEFINITIONS */

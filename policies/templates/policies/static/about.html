@@ -1,0 +1,23 @@
+{% extends "policies/base_site.html" %}
+
+{% load staticfiles %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/starter-template.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="px-5 py-3 pt-md-5 pb-md-4 mx-5 text-center"><!--style="max-width: 700px">-->
+<h1>About Orpheus</h1>
+    <p class="lead text-muted">
+        Orpheus is a database of academic journals and their policies. It features web
+        frontends for users and administrators and a RESTful API, tailored for integration
+        with DSpace and other institutional repository platforms.
+    </p>
+
+    <p class="lead text-muted">
+        Please use the <a href="https://app.asana.com/0/648964409894394/board">Orpheus' project board</a> in Asana
+        to report any bugs, request new features, etc.
+    </p>
+</div>
+{% endblock %}

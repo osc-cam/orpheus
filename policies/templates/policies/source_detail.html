@@ -1,0 +1,346 @@
+{% extends "policies/base_site.html" %}
+
+{% load staticfiles %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/orpheus-base-style.css' %}">
+<style>
+  .action-links-inline {
+    font-size: small;
+    font-weight: normal;
+    display: inline;
+    text-align: right;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="sourceInfo" class="container">
+
+    <h1 style="display: inline">Orpheus source details</h1>
+    <p class="action-links-inline">
+      <a href="{{ source.get_absolute_url }}edit">[edit source]</a>
+      <a href="">[delete]</a>
+    </p>
+
+    <hr id="header-line">
+
+    <div class="row">
+        <div class="col-sm-4">Description</div>
+        <div class="col-sm-8">{{ source.description }}</div>
+        {% if source.url %}
+            <div class="col-sm-4">Url</div>
+            <div class="col-sm-8"><a href={{ source.url }}>{{ source.url }}</a></div>
+        {% endif %}
+        <div class="col-sm-4">Type</div>
+        <div class="col-sm-8">{{ source.type.capitalize }}</div>
+        {% if source.file %}
+            <div class="col-sm-4">File</div>
+            <div class="col-sm-8">{{ source.file }}</div>
+        {% endif %}
+    </div>
+
+</div> <!--/container-->
+
+<div id="node_list" class="container">
+    <hr>
+    <h2>Nodes ({{ node_count }})</h2>
+        <ul style="list-style-type: none">
+            {% for child in node_list %}
+                <li>
+                {% if child.vetted %}
+                    <img style="display: inline" src="{% static 'images/icon-yes.svg' %}">
+                {% else %}
+                    <img style="display: inline" src="{% static 'images/icon-unknown.svg' %}">
+                {% endif %}
+                {% if child.name_status == 'SYNONYM' %}
+                    <a href="{{ child.get_absolute_url }}">{{ child.name }}</a> accepted as <a href="{{ child.synonym_of.get_absolute_url }}">{{ child.synonym_of.name }} </a>({{ child.get_type_display }})
+                {% else %}
+                    <a href="{{ child.get_absolute_url }}">{{ child.name }} </a>({{ child.get_type_display }})
+                {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+
+    {% if node_list.has_other_pages %}
+      <ul class="pagination">
+        {% if node_list.has_previous %}
+          <li class="page-item">
+                <a class="page-link" href="?page={{ node_list.previous_page_number }}"></a>
+            </li>
+        {% endif %}
+        
+        {% if node_list.paginator.num_pages > 11 and node_list.number == 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+        {% elif node_list.paginator.num_pages > 11 and node_list.number > 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+          {% endif %}
+
+        {% for i in node_list.paginator.page_range %}
+              {% if node_list.number == i %}
+                <li class="page-item active">
+                        <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+                    </li>
+              {% elif i > node_list.number|add:'-6' and i < node_list.number|add:'6' %} <!--http://disq.us/p/1nlcd9t-->
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+              {% endif %}
+          {% endfor %}
+
+        {% if node_list.paginator.num_pages > 11 and node_list.number == node_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ node_list.paginator.num_pages }}">{{ node_list.paginator.num_pages }}</a>
+            </li>
+        {% elif node_list.paginator.num_pages > 11 and node_list.number < node_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ node_list.paginator.num_pages }}">{{ node_list.paginator.num_pages }}</a>
+            </li>
+          {% endif %}
+
+          {% if node_list.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ node_list.next_page_number }}">&raquo;</a>
+              </li>
+          {% endif %}
+
+      </ul>
+    {% endif %}
+
+</div> <!--/container-->
+
+<div id="oastatus_list" class="container">
+    <hr>
+    <h2>Open Access stata ({{ oastatus_count }})</h2>
+        <ul style="list-style-type: none">
+            {% for policy in oastatus_list %}
+                <li>
+                {% if policy.vetted and not policy.get_deletion_requests and not policy.superseded and not policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                {% elif policy.get_deletion_requests or policy.superseded or policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                {% endif %}
+                <a href="{{ policy.node.get_absolute_url }}">{{ policy.node.name }}</a> [{{ policy.get_oa_status_display }}]
+                </li>
+            {% endfor %}
+        </ul>
+
+    {% if oastatus_list.has_other_pages %}
+      <ul class="pagination">
+        {% if oastatus_list.has_previous %}
+          <li class="page-item">
+                <a class="page-link" href="?page={{ oastatus_list.previous_page_number }}"></a>
+            </li>
+        {% endif %}
+
+        {% if oastatus_list.paginator.num_pages > 11 and oastatus_list.number == 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+        {% elif oastatus_list.paginator.num_pages > 11 and oastatus_list.number > 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+          {% endif %}
+
+        {% for i in oastatus_list.paginator.page_range %}
+              {% if oastatus_list.number == i %}
+                <li class="page-item active">
+                        <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+                    </li>
+              {% elif i > oastatus_list.number|add:'-6' and i < oastatus_list.number|add:'6' %} <!--http://disq.us/p/1nlcd9t-->
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+              {% endif %}
+          {% endfor %}
+
+        {% if oastatus_list.paginator.num_pages > 11 and oastatus_list.number == oastatus_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ oastatus_list.paginator.num_pages }}">{{ oastatus_list.paginator.num_pages }}</a>
+            </li>
+        {% elif oastatus_list.paginator.num_pages > 11 and oastatus_list.number < oastatus_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ oastatus_list.paginator.num_pages }}">{{ oastatus_list.paginator.num_pages }}</a>
+            </li>
+          {% endif %}
+
+          {% if oastatus_list.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ oastatus_list.next_page_number }}">&raquo;</a>
+              </li>
+          {% endif %}
+
+      </ul>
+    {% endif %}
+
+</div> <!--/container-->
+
+<div id="gold_list" class="container">
+    <hr>
+    <h2>Gold policies ({{ gold_count }})</h2>
+        <ul style="list-style-type: none">
+            {% for policy in gold_list %}
+                <li>
+                {% if policy.vetted and not policy.get_deletion_requests and not policy.superseded and not policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                {% elif policy.get_deletion_requests or policy.superseded or policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                {% endif %}
+                <a href="{{ policy.node.get_absolute_url }}">{{ policy.node.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+    {% if gold_list.has_other_pages %}
+      <ul class="pagination">
+        {% if gold_list.has_previous %}
+          <li class="page-item">
+                <a class="page-link" href="?page={{ gold_list.previous_page_number }}"></a>
+            </li>
+        {% endif %}
+
+        {% if gold_list.paginator.num_pages > 11 and gold_list.number == 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+        {% elif gold_list.paginator.num_pages > 11 and gold_list.number > 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+          {% endif %}
+
+        {% for i in gold_list.paginator.page_range %}
+              {% if gold_list.number == i %}
+                <li class="page-item active">
+                        <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+                    </li>
+              {% elif i > gold_list.number|add:'-6' and i < gold_list.number|add:'6' %} <!--http://disq.us/p/1nlcd9t-->
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+              {% endif %}
+          {% endfor %}
+
+        {% if gold_list.paginator.num_pages > 11 and gold_list.number == gold_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ gold_list.paginator.num_pages }}">{{ gold_list.paginator.num_pages }}</a>
+            </li>
+        {% elif gold_list.paginator.num_pages > 11 and gold_list.number < gold_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ gold_list.paginator.num_pages }}">{{ gold_list.paginator.num_pages }}</a>
+            </li>
+          {% endif %}
+
+          {% if gold_list.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ gold_list.next_page_number }}">&raquo;</a>
+              </li>
+          {% endif %}
+
+      </ul>
+    {% endif %}
+
+</div> <!--/container-->
+
+<div id="green_list" class="container">
+    <hr>
+    <h2>Green policies ({{ green_count }})</h2>
+        <ul style="list-style-type: none">
+            {% for policy in green_list %}
+                <li>
+                {% if policy.vetted and not policy.get_deletion_requests and not policy.superseded and not policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                {% elif policy.get_deletion_requests or policy.superseded or policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                {% endif %}
+                <a href="{{ policy.node.get_absolute_url }}">{{ policy.node.name }}</a> [{{ policy.short_name }}]
+                </li>
+            {% endfor %}
+        </ul>
+
+    {% if green_list.has_other_pages %}
+      <ul class="pagination">
+        {% if green_list.has_previous %}
+          <li class="page-item">
+                <a class="page-link" href="?page={{ green_list.previous_page_number }}"></a>
+            </li>
+        {% endif %}
+
+        {% if green_list.paginator.num_pages > 11 and green_list.number == 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+        {% elif green_list.paginator.num_pages > 11 and green_list.number > 7 %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+          {% endif %}
+
+        {% for i in green_list.paginator.page_range %}
+              {% if green_list.number == i %}
+                <li class="page-item active">
+                        <a class="page-link" href="#">{{ i }} <span class="sr-only">(current)</span></a>
+                    </li>
+              {% elif i > green_list.number|add:'-6' and i < green_list.number|add:'6' %} <!--http://disq.us/p/1nlcd9t-->
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+              {% endif %}
+          {% endfor %}
+
+        {% if green_list.paginator.num_pages > 11 and green_list.number == green_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ green_list.paginator.num_pages }}">{{ green_list.paginator.num_pages }}</a>
+            </li>
+        {% elif green_list.paginator.num_pages > 11 and green_list.number < green_list.paginator.num_pages|add:'-6' %}
+            <li class="page-item">
+                <a class="page-link" href="#">...</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ green_list.paginator.num_pages }}">{{ green_list.paginator.num_pages }}</a>
+            </li>
+          {% endif %}
+
+          {% if green_list.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ green_list.next_page_number }}">&raquo;</a>
+              </li>
+          {% endif %}
+
+      </ul>
+    {% endif %}
+
+</div> <!--/container-->
+
+{% endblock %}

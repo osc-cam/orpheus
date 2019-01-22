@@ -1,0 +1,6 @@
+{% extends "policies/base_form.html" %}
+
+{% block header %}
+    <h2 style="display: inline">Request deletion of node:</h2>
+    <h1>{{ node.name }} ({{ node.get_type_display }})</h1>
+{% endblock %}

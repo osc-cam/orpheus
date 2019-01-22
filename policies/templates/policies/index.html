@@ -1,0 +1,205 @@
+{% extends "policies/base_site.html" %}
+
+{% load staticfiles %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/starter-template.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="px-5 py-3 pt-md-5 pb-md-4 mx-5 text-center"><!--style="max-width: 700px">-->
+<h1>Welcome to Orpheus!</h1>
+    <p class="lead text-muted">
+        Orpheus is a database of academic journals and their policies. It features web
+        frontends for users and administrators and a RESTful API, tailored for integration
+        with DSpace and other institutional repository platforms.
+    </p>
+</div>
+
+<div id="contents" class="container mb-4 mt-5">
+    <h3>Contents at a glance</h3>
+  <div class="text-center">
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+        </div>
+        <div class="col-sm-2 font-weight-bold">
+            Journals
+        </div>
+        <div class="col-sm-2 font-weight-bold">
+            Publishers
+        </div>
+        <div class="col-sm-2 font-weight-bold">
+            Conferences
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            Total entries
+        </div>
+        <div class="col-sm-2">
+            {{ num_journals }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publishers }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conferences }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            Preferred names
+        </div>
+        <div class="col-sm-2">
+            {{ num_journals_primary }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publishers_primary }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conferences_primary }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            OA status known
+        </div>
+        <div class="col-sm-2">
+            {{ num_journal_oa_status }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publisher_oa_status }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conference_oa_status }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            Green policies
+        </div>
+        <div class="col-sm-2">
+            {{ num_journal_green }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publisher_green }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conference_green }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            Gold policies
+        </div>
+        <div class="col-sm-2">
+            {{ num_journal_gold }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publisher_gold }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conference_gold }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            EPMC policies
+        </div>
+        <div class="col-sm-2">
+            {{ num_journal_epmc }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publisher_epmc }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conference_epmc }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            Deals/discounts
+        </div>
+        <div class="col-sm-2">
+            {{ num_journal_deals }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publisher_deals }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conference_deals }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 font-weight-bold">
+            Contacts
+        </div>
+        <div class="col-sm-2">
+            {{ num_journal_contacts }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_publisher_contacts }}
+        </div>
+        <div class="col-sm-2">
+            {{ num_conference_contacts }}
+        </div>
+    </div>
+  </div>
+</div>
+
+<!--<div class="container">-->
+    <!--<h2>Contents at a glance</h2>-->
+      <!--<div class="card-deck mb-3 text-center">-->
+        <!--<div class="card mb-4 box-shadow">-->
+          <!--<div class="card-header">-->
+            <!--<h4 class="my-0 font-weight-normal">Journals</h4>-->
+          <!--</div>-->
+          <!--<div class="card-body">-->
+            <!--<h3 class="card-title pricing-card-title">{{ num_journals }}<small class="text-muted"> total entries</small></h3>-->
+            <!--<ul class="list-unstyled mt-3 mb-4">-->
+              <!--<li>{{ num_journals_primary }} preferred names</li>-->
+              <!--<li>{{ num_journal_green }} with a known green policy</li>-->
+              <!--<li>{{ num_journal_gold }} with a known gold policy</li>-->
+            <!--</ul>-->
+            <!--<button type="button" class="btn btn-lg btn-block btn-outline-primary">Find out more</button>-->
+          <!--</div>-->
+        <!--</div>-->
+        <!--<div class="card mb-4 box-shadow">-->
+          <!--<div class="card-header">-->
+            <!--<h4 class="my-0 font-weight-normal">Publishers</h4>-->
+          <!--</div>-->
+          <!--<div class="card-body">-->
+            <!--<h3 class="card-title pricing-card-title">{{ num_publishers }}<small class="text-muted"> total entries</small></h3>-->
+            <!--<ul class="list-unstyled mt-3 mb-4">-->
+              <!--<li>{{ num_publishers_primary }} preferred names</li>-->
+              <!--<li>{{ num_publisher_green }} with a known green policy</li>-->
+              <!--<li>{{ num_publisher_gold }} with a known gold policy</li>-->
+            <!--</ul>-->
+            <!--<button type="button" class="btn btn-lg btn-block btn-primary">Get started</button>-->
+          <!--</div>-->
+        <!--</div>-->
+        <!--<div class="card mb-4 box-shadow">-->
+          <!--<div class="card-header">-->
+            <!--<h4 class="my-0 font-weight-normal">Conferences</h4>-->
+          <!--</div>-->
+          <!--<div class="card-body">-->
+            <!--<h3 class="card-title pricing-card-title">{{ num_conferences }}<small class="text-muted"> total entries</small></h3>-->
+            <!--<ul class="list-unstyled mt-3 mb-4">-->
+              <!--<li>{{ num_conferences_primary }} preferred names</li>-->
+              <!--<li>{{ num_conference_green }} with a known green policy</li>-->
+              <!--<li>{{ num_conference_gold }} with a known gold policy</li>-->
+            <!--</ul>-->
+            <!--<button type="button" class="btn btn-lg btn-block btn-primary">Contact us</button>-->
+          <!--</div>-->
+        <!--</div>-->
+      <!--</div>-->
+
+{% endblock %}

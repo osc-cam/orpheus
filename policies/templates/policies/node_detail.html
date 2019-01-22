@@ -1,0 +1,681 @@
+{% extends "policies/base_site.html" %}
+
+{% load staticfiles %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/orpheus-base-style.css' %}">
+<style>
+  .action-links-inline {
+    font-size: small;
+    font-weight: normal;
+    display: inline;
+    text-align: right;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="nodeInfo" class="container">
+    <!--{% if node.vetted and not node.get_deletion_requests %}-->
+        <!--<p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>-->
+    <!--{% elif node.get_deletion_requests %}-->
+        <!--<p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>-->
+    <!--{% else %}-->
+        <!--<p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>-->
+    <!--{% endif %}-->
+    <h1 style="display: inline">{{ node.name }}</h1>
+    <h3 style="display: inline">({{ node.get_type_display }})</h3>
+    <p class="action-links-inline">
+        {% if node.type == 'PUBLISHER' %}
+            <a href="{{ node.get_absolute_url }}editpublisher">[edit publisher]</a>
+        {% elif node.type == 'JOURNAL' %}
+            <a href="{{ node.get_absolute_url }}editjournal">[edit journal]</a>
+        {% elif node.type == 'CONFERENCE' %}
+            <a href="{{ node.get_absolute_url }}editconference">[edit conference]</a>
+        {% else %}
+            <a href="{{ node.get_absolute_url }}edit">[edit node]</a>
+        {% endif %}
+        {% if node.type == 'PUBLISHER' %}
+            <a href="{{ node.get_absolute_url }}newchild">[add child node]</a>
+        {% endif %}
+        <a href="{{ node.get_absolute_url }}newsynonym">[add synonym]</a>
+        <a href="{{ node.get_absolute_url }}delete">[delete]</a>
+        {% if node.get_deletion_requests and perms.policies.delete_node %} <!--http://data.agaric.com/figuring-out-what-django-permission-names-are-and-what-permissions-user-has-->
+            <a href="{% url 'policies:node_confirm_delete' pk=node.id %}">[confirm deletion]</a>
+        {% endif %}
+        {% if node.get_invalid_policies %}
+            <a class="action-links-inline text-danger" href="{{ node.get_absolute_url }}all">[display superseded policies]</a>
+        {% endif %}
+    </p>
+    <!--<p style="display: inline">[Edit node][Add child node]</p>-->
+
+    <hr id="header-line">
+
+    {% if node.get_deletion_requests %}
+        {% for request in node.get_deletion_requests %}
+            <div class="row">
+                <div class="col-sm-4">Reason for deletion request</div>
+                <div class="col-sm-8">{{ request.text }}</div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-sm-4">Name status</div>
+        <div class="col-sm-8">{{ node.get_name_status_display }}</div>
+    </div>
+
+    {% if node.name_status == 'SYNONYM' %}
+        <div class="row">
+          <div class="col-sm-4">Preferred name</div>
+          <div class="col-sm-8"><a href="{{ node.synonym_of.get_absolute_url }}">{{ node.synonym_of.name }}</a></div>
+        </div>
+    {% endif %}
+
+    {% if node.url %}
+      <div class="row">
+        <div class="col-sm-4">URL</div>
+        <div class="col-sm-8"><a href="{{ node.url }}">{{ node.url }}</a></div>
+      </div>
+    {% endif %}
+
+    {% if node.issn %}
+      <div class="row">
+        <div class="col-sm-4">ISSN</div>
+        <div class="col-sm-8">{{ node.issn }}</div>
+      </div>
+    {% endif %}
+
+    {% if node.eissn %}
+      <div class="row">
+        <div class="col-sm-4">e-ISSN</div>
+        <div class="col-sm-8">{{ node.eissn }}</div>
+      </div>
+    {% endif %}
+
+    {% if node.parent %}
+      <div class="row">
+        <div class="col-sm-4">Publisher</div>
+        <div class="col-sm-8"><a href="{{ node.parent.get_absolute_url }}">{{ node.parent.name }}</a></div>
+      </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-sm-4">Source</div>
+        <div class="col-sm-8">
+            {% if node.source.url %}
+                <a href={{ node.source.url }}>{{ node.source.description }}</a>
+                <a class="action-links-inline" href="{{ node.source.get_absolute_url }}">[view]</a>
+            {% else %}
+                <a href="{{ node.source.get_absolute_url }}">{{ node.source.description }}</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!--<div class="row">-->
+        <!--<div class="col-sm-4">Orpheus id</div>-->
+        <!--<div class="col-sm-8">{{ node.pk }}</div>-->
+    <!--</div>-->
+
+    {% if node.get_romeo_url or node.get_doaj_url %}
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-8">
+                {% if node.get_romeo_url %}
+                    <a href="{{ node.get_romeo_url }}">
+                        <img width="15" src="{% static 'icons/romeo_favicon.ico' %}"></a>&nbsp;
+                {% endif %}
+                {% if node.get_doaj_url %}
+                    <a href="{{ node.get_doaj_url }}"><img width="15" src="{% static 'icons/doaj_favicon.ico' %}"></a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+</div> <!--/container-->
+
+<div id="Apollo" class="container">
+    <hr>
+    <h2>Embargoes for self-archiving in Apollo (in months)</h2>
+    <div class="row">
+        <div class="col-sm-4">AM</div>
+        <div class="col-sm-8">{{ node.apollo_am_embargo_months }}</div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">VoR</div>
+        <div class="col-sm-8">{{ node.apollo_vor_embargo_months }}</div>
+    </div>
+</div> <!--/container-->
+
+<div id="oaStatus" class="container">
+    <hr>
+    <h2>Open Access status <a class="action-links-inline" href="{{ node.get_absolute_url }}newoastatus">[add open access status]</a></h2>
+    {% if oastatus_list %}
+        {% for policy in oastatus_list %}
+            <div class="row">
+                <div class="col-sm-12">
+                    {% if policy.vetted and not policy.get_deletion_requests and not policy.superseded %}
+                            <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                    {% elif policy.get_deletion_requests or policy.superseded %}
+                            <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                    {% else %}
+                            <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                    {% endif %}
+                    {{ policy.get_oa_status_display }} <span class="text-danger action-links-inline">{{ oastatus_prov }}</span>
+                    {% if policy.node == node %} <!-- status not inherited from parent -->
+                        <p class="action-links-inline">
+                            <a href="{% url 'policies:oa_status_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:oa_status_delete' pk=policy.id %}">[delete]</a>
+                            {% if policy.get_deletion_requests and perms.policies.delete_oa_status %}
+                                <a href="{% url 'policies:oa_status_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if policy.get_deletion_requests %}
+                {% for request in policy.get_deletion_requests %}
+                    <div class="row">
+                        <div class="col-sm-4">Reason for deletion request</div>
+                        <div class="col-sm-8">{{ request.text }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% include "policies/field_policy_source.html" %}
+            {% include "policies/fields/field_policy_last_checked.html" %}
+            {% include "policies/fields/field_policy_superseded.html" %}
+
+        {% endfor %}
+    {% endif %}
+</div> <!--/container-->
+
+<div id="goldPolicy" class="container">
+    <hr>
+    <h2>Gold policy <a class="action-links-inline" href="{{ node.get_absolute_url }}newgoldpolicy">[add gold policy]</a></h2>
+    {% if goldpolicy_list %}
+        {% for policy in goldpolicy_list %}
+            <div class="row">
+                <div class="col-sm-12">
+                    {% if policy.vetted and not policy.get_deletion_requests and not policy.superseded %}
+                        <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                    {% elif policy.get_deletion_requests or policy.superseded %}
+                        <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                    {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                    {% endif %}
+                    {{ policy.source }} <span class="text-danger action-links-inline">{{ goldpolicy_prov }}</span>
+                    {% if policy.node == node %} <!-- status not inherited from parent -->
+                        <p class="action-links-inline">
+                            <a href="{% url 'policies:gold_policy_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:gold_policy_delete' pk=policy.id %}">[delete]</a>
+                            {% if policy.get_deletion_requests and perms.policies.delete_goldpolicy %}
+                                <a href="{% url 'policies:gold_policy_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if policy.get_deletion_requests %}
+                {% for request in policy.get_deletion_requests %}
+                    <div class="row">
+                        <div class="col-sm-4">Reason for deletion request</div>
+                        <div class="col-sm-8">{{ request.text }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if policy.apc_value_min %}
+            <div class="row">
+                <div class="col-sm-4">Min. APC</div>
+                <div class="col-sm-8">{{ policy.apc_currency }} {{ policy.apc_value_min }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.apc_value_max %}
+            <div class="row">
+                <div class="col-sm-4">Max. APC</div>
+                <div class="col-sm-8">{{ policy.apc_currency }} {{ policy.apc_value_max }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.apc_note %}
+            <div class="row">
+                <div class="col-sm-4">APC note</div>
+                <div class="col-sm-8">{{ policy.apc_note }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.licence_options.all %}
+            <div class="row">
+                <div class="col-sm-4">Gold licence options</div>
+                <div class="col-sm-8">
+                    {% for option in policy.licence_options.all %}
+                        {% if forloop.last %}
+                            {{ option }}
+                        {% else %}
+                            {{ option }};
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if policy.default_licence %}
+            <div class="row">
+                <div class="col-sm-4">Default licence</div>
+                <div class="col-sm-8">{{ policy.default_licence }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.note %}
+            <div class="row">
+                <div class="col-sm-4">Note</div>
+                <div id="modelNote" class="col-sm-8">{{ policy.note }}</div>
+            </div>
+            {% endif %}
+
+            {% include "policies/fields/field_policy_last_checked.html" %}
+            {% include "policies/fields/field_policy_superseded.html" %}
+
+        {% endfor %}
+    {% endif %}
+</div> <!--/container-->
+
+<div id="greenPolicy" class="container">
+    <hr>
+    <h2>Green policy <a class="action-links-inline" href="{{ node.get_absolute_url }}newgreenpolicy">[add green policy]</a></h2>
+    {% if greenpolicy_list %}
+        {% for policy in greenpolicy_list %}
+            <div class="row">
+                <div class="col-sm-12">
+                    <!--{% if policy.vetted and not policy.get_deletion_requests and not policy.superseded and not policy.problematic %}-->
+                        <!--<p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>-->
+                    <!--{% elif policy.get_deletion_requests or policy.superseded or policy.problematic %}-->
+                        <!--<p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>-->
+                    <!--{% else %}-->
+                        <!--<p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>-->
+                    <!--{% endif %}-->
+                    {% if policy.get_deletion_requests or policy.superseded or policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-alert.svg' %}"></p>
+                    {% endif %}
+                    {{ policy.short_name }} <span class="text-danger action-links-inline">{{ greenpolicy_prov }}</span>
+                    {% if policy.node == node %} <!-- status not inherited from parent -->
+                        <p class="action-links-inline">
+                            <a href="{% url 'policies:green_policy_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:green_policy_delete' pk=policy.id %}">[delete]</a>
+                            {% if policy.get_deletion_requests and perms.policies.delete_greenpolicy %}
+                                <a href="{% url 'policies:green_policy_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if policy.get_deletion_requests %}
+                {% for request in policy.get_deletion_requests %}
+                    <div class="row">
+                        <div class="col-sm-4">Reason for deletion request</div>
+                        <div class="col-sm-8">{{ request.text }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if policy.outlet %}
+            <div class="row">
+                <div class="col-sm-4">Policy applies to</div>
+                <div class="col-sm-8">
+                    {% for option in policy.outlet.all %}
+                        {% if forloop.last %}
+                            {{ option }}
+                        {% else %}
+                            {{ option }};
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if policy.output %}
+            <div class="row">
+                <div class="col-sm-4">Covered outputs</div>
+                <div class="col-sm-8">
+                    {% for option in policy.output.all %}
+                        {% if forloop.last %}
+                            {{ option }}
+                        {% else %}
+                            {{ option }};
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if policy.version %}
+                <div class="row">
+                    <div class="col-sm-4">Manuscript version(s)</div>
+                    <div class="col-sm-8">
+                        {% for option in policy.version.all %}
+                            {% if forloop.last %}
+                                {{ option }}
+                            {% else %}
+                                {{ option }};
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-sm-4">Deposit allowed</div>
+                <div class="col-sm-8">
+                    {% if policy.deposit_allowed %}
+                        <p class="text-success mb-0">Yes</p>
+                    {% elif not policy.deposit_allowed %}
+                        <p class="text-danger mb-0">No</p>
+                    {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if policy.deposit_allowed %}
+                <div class="row">
+                    <div class="col-sm-4">Embargo period</div>
+                    <div class="col-sm-8">
+                        {% if policy.version_embargo_months %}
+                            {{ policy.version_embargo_months }} months
+                        {% elif policy.version_embargo_months == 0 %}
+                            0 months
+                        {% else %}
+                            <p style="display: inline"><img src="{% static 'images/icon-unknown-orange.svg' %}"></p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if policy.version_green_licence %}
+                <div class="row">
+                    <div class="col-sm-4">Green licence</div>
+                    <div class="col-sm-8">{{ policy.version_green_licence }}</div>
+                </div>
+            {% endif %}
+
+            {% include "policies/field_policy_source.html" %}
+            {% include "policies/fields/field_policy_last_checked.html" %}
+            {% include "policies/fields/field_policy_superseded.html" %}
+
+        {% endfor %}
+    {% endif %}
+</div> <!--/container-->
+
+<div id="epmc" class="container">
+    <hr>
+    <h2>E<span style="font-variant: small-caps">pmc</span> policy <a class="action-links-inline" href="{{ node.get_absolute_url }}newepmc">[add EPMC policy]</a></h2>
+    {% if epmc_list %}
+        {% for policy in epmc_list %}
+            <div class="row">
+                <div class="col-sm-12">
+                    {% if policy.vetted and not policy.get_deletion_requests and not policy.superseded and not policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                    {% elif policy.get_deletion_requests or policy.superseded or policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                    {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                    {% endif %}
+                    {{ policy }} <span class="text-danger action-links-inline">{{ epmc_prov }}</span>
+                    {% if policy.node == node %} <!-- status not inherited from parent -->
+                        <p class="action-links-inline">
+                            <a href="{% url 'policies:epmc_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:epmc_delete' pk=policy.id %}">[delete]</a>
+                            {% if policy.get_deletion_requests and perms.policies.delete_epmc %}
+                                <a href="{% url 'policies:epmc_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if policy.get_deletion_requests %}
+                {% for request in policy.get_deletion_requests %}
+                    <div class="row">
+                        <div class="col-sm-4">Reason for deletion request</div>
+                        <div class="col-sm-8">{{ request.text }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row">
+                <div class="col-sm-4">Participation level</div>
+                <div class="col-sm-8">{{ policy.get_participation_level_display }}</div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-4">Embargo period</div>
+                <div class="col-sm-8">
+                    {% if policy.embargo_months %}
+                        {{ policy.embargo_months }} months
+                    {% elif policy.embargo_months == 0 %}
+                        0 months
+                    {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown-orange.svg' %}"></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-4">Open Licence</div>
+                <div class="col-sm-8">{{ policy.get_open_licence_display }}</div>
+            </div>
+
+            {% if policy.deposit_status %}
+                <div class="row">
+                    <div class="col-sm-4">Deposit status</div>
+                    <div class="col-sm-8">{{ policy.deposit_status }}</div>
+                </div>
+            {% endif %}
+
+            {% include "policies/field_policy_source.html" %}
+            {% include "policies/fields/field_policy_last_checked.html" %}
+            {% include "policies/fields/field_policy_superseded.html" %}
+
+        {% endfor %}
+    {% endif %}
+</div> <!--/container-->
+
+<div id="deal" class="container">
+    <hr>
+    <h2>Deals/discounts <a class="action-links-inline" href="{{ node.get_absolute_url }}newdeal">[add deal]</a></h2>
+    {% if deal_list %}
+        {% for policy in deal_list %}
+            <div class="row">
+                <div class="col-sm-12">
+                    {% if policy.vetted and not policy.get_deletion_requests and not policy.superseded and not policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                    {% elif policy.get_deletion_requests or policy.superseded or policy.problematic %}
+                        <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                    {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                    {% endif %}
+                    {{ policy }} <span class="text-danger action-links-inline">{{ deal_prov }}</span>
+                    {% if policy.node == node %} <!-- status not inherited from parent -->
+                        <p class="action-links-inline">
+                            <a href="{% url 'policies:deal_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:deal_delete' pk=policy.id %}">[delete]</a>
+                            {% if policy.get_deletion_requests and perms.policies.delete_deal %}
+                                <a href="{% url 'policies:epmc_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if policy.get_deletion_requests %}
+                {% for request in policy.get_deletion_requests %}
+                    <div class="row">
+                        <div class="col-sm-4">Reason for deletion request</div>
+                        <div class="col-sm-8">{{ request.text }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if policy.name %}
+            <div class="row">
+                <div class="col-sm-4">Name</div>
+                <div class="col-sm-8">{{ policy.name }}</div>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-sm-4">Applies to</div>
+                <div class="col-sm-8">{{ policy.get_applies_to_display }}</div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-4">Type</div>
+                <div class="col-sm-8">{{ policy.get_type_display }}</div>
+            </div>
+
+            {% if policy.discount_currency %}
+            <div class="row">
+                <div class="col-sm-4">Discount currency</div>
+                <div class="col-sm-8">{{ policy.discount_currency }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.discount_amount %}
+            <div class="row">
+                <div class="col-sm-4">Discount amount</div>
+                <div class="col-sm-8">{{ policy.discount_amount }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.discount_percentage %}
+            <div class="row">
+                <div class="col-sm-4">Discount percentage</div>
+                <div class="col-sm-8">{{ policy.discount_percentage }}</div>
+            </div>
+            {% endif %}
+
+            {% include "policies/field_policy_source.html" %}
+            {% include "policies/fields/field_policy_last_checked.html" %}
+            {% include "policies/fields/field_policy_superseded.html" %}
+
+        {% endfor %}
+    {% endif %}
+</div> <!--/container-->
+
+<div id="contacts" class="container">
+    <hr>
+    <h2>Contacts <a class="action-links-inline" href="{{ node.get_absolute_url }}newcontact">[add contact]</a></h2>
+    {% if contact_list %}
+        {% for policy in contact_list %}
+            <div class="row">
+                <div class="col-sm-12">
+                    {% if policy.active and not policy.get_deletion_requests %}
+                        <p style="display: inline"><img src="{% static 'images/icon-yes.svg' %}"></p>
+                    {% elif policy.get_deletion_requests %}
+                        <p style="display: inline"><img src="{% static 'images/icon-no.svg' %}"></p>
+                    {% else %}
+                        <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
+                    {% endif %}
+                    {{ policy }} <span class="text-danger action-links-inline">{{ contact_prov }}</span>
+                    {% if policy.node == node %} <!-- status not inherited from parent -->
+                        <p class="action-links-inline">
+                            <a href="{% url 'policies:contact_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:contact_delete' pk=policy.id %}">[delete]</a>
+                            {% if policy.get_deletion_requests and perms.policies.delete_contact %}
+                                <a href="{% url 'policies:contact_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if policy.get_deletion_requests %}
+                {% for request in policy.get_deletion_requests %}
+                    <div class="row">
+                        <div class="col-sm-4">Reason for deletion request</div>
+                        <div class="col-sm-8">{{ request.text }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if policy.name %}
+            <div class="row">
+                <div class="col-sm-4">Name</div>
+                <div class="col-sm-8">{{ policy.name }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.email %}
+            <div class="row">
+                <div class="col-sm-4">E-mail</div>
+                <div class="col-sm-8">{{ policy.email }}</div>
+            </div>
+            {% endif %}
+
+            {% if policy.responsibilities.all %}
+            <div class="row">
+                <div class="col-sm-4">Responsibilities</div>
+                <div class="col-sm-8">
+                    {% for option in policy.responsibilities.all %}
+                        {% if forloop.last %}
+                            {{ option }}
+                        {% else %}
+                            {{ option }};
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        {% endfor %}
+    {% endif %}
+</div> <!--/container-->
+
+{% if node.synonyms.all %}
+    <div id="synonyms" class="container">
+        <hr>
+        <h2>Synonyms</h2>
+        <ul style="list-style-type: none">
+            {% for synonym in node.synonyms.all %}
+                <li>
+                {% if synonym.vetted %}
+                    <img style="display: inline" src="{% static 'images/icon-yes.svg' %}">
+                {% else %}
+                    <img style="display: inline" src="{% static 'images/icon-unknown.svg' %}">
+                {% endif %}
+                    <a href="{{ synonym.get_absolute_url }}">{{ synonym.name }} </a>({{ synonym.get_name_status_display }})
+              </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+
+{% if node.children.all %}
+    <div id="children" class="container">
+    <hr>
+    <h2>Child nodes ({{ node.children.count }})</h2>
+        <ul style="list-style-type: none">
+            {% for child in node.children.all %}
+                <li>
+                {% if child.vetted %}
+                    <img style="display: inline" src="{% static 'images/icon-yes.svg' %}">
+                {% else %}
+                    <img style="display: inline" src="{% static 'images/icon-unknown.svg' %}">
+                {% endif %}
+                {% if child.name_status == 'SYNONYM' %}
+                    <a href="{{ child.get_absolute_url }}">{{ child.name }}</a> accepted as <a href="{{ child.synonym_of.get_absolute_url }}">{{ child.synonym_of.name }} </a>({{ child.get_type_display }})
+                {% else %}
+                    <a href="{{ child.get_absolute_url }}">{{ child.name }} </a>({{ child.get_type_display }})
+                {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% endblock %}

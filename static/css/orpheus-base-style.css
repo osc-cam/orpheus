@@ -1,0 +1,103 @@
+body {
+  padding-top: 5rem;
+  padding-bottom: 2rem;
+  /* color: #701C10; */
+  /* color: #106470; */
+}
+
+h1 {
+  color: #106470;
+}
+
+h2 {
+  color: #106470;
+}
+
+h3 {
+  margin-top: 2rem;
+  color: #106470;
+}
+
+hr {
+  width: 0%;
+}
+
+a {
+    color: #0072CF;
+}
+
+/* CLASS DEFINITIONS */
+
+.container {
+  /* border: 1px solid rgba(86,61,124,.2); */
+  background-color: rgba(86,61,124,.1); */
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.row {
+  /* margin-bottom: 1rem; */
+  font-size: large;
+}
+
+/*
+.row .row {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+*/
+
+[class*="col-"] {
+  /* padding-top: 1rem;
+  padding-bottom: 1rem;
+  /* background-color: rgba(86,61,124,.15); */
+  /* border: 1px solid rgba(86,61,124,.2); */
+}
+
+.col-sm-4 {
+  font-weight: bold;
+  text-align: right;
+  color: #106470;
+}
+
+.col-sm-12 {
+  font-size: larger;
+  font-weight: bold;
+  text-align: center;
+  text-indent: 1rem;
+  color: #106470;
+  padding-bottom: 0.5rem;
+  padding-top: 1rem;
+}
+
+
+/* For some reason the classes below is
+completely ignored when defined here,
+but it works when defined in the <head>
+of the template file */
+/* .action-links-inline {
+  display: inline;
+  text-align: right;
+} */
+
+/* .vettedimage {
+  display: inline;
+  vertical-align: middle;
+} */
+
+
+/* ID DEFINITIONS */
+
+#header-line{
+  border-width: 2px;
+  margin-top: 0.3rem;
+  margin-bottom: 1rem;
+  color: #106470;
+  background-color: #106470;
+  width: 100%;
+}
+
+#modelNote {
+  font-size: smaller;
+}
+

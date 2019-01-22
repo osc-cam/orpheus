@@ -1,0 +1,38 @@
+digraph
+{
+    node[shape="box"] # activities
+        search_romeo; update_orpheus; navigate_parent
+    node[shape="box3d"] # activities with drilldown
+       search_orpheus
+    node[shape="box" style="rounded,filled" color="black" fillcolor="lightblue"] # deliverables
+       zd_journal; record; search_result; embargo; external_embargo;
+    node[shape="diamond", style=""] # decision box
+       if_found; if_valid; if_publisher
+    
+    zd_journal -> search_orpheus -> search_result -> if_found;
+    if_found -> record[label="yes"]; 
+    record -> if_publisher;
+    if_publisher -> navigate_parent[label="yes"];
+        navigate_parent -> record;
+    if_publisher -> if_valid[label="no"];
+    if_valid -> embargo[label="yes"];
+    if_valid -> search_romeo[label="no"];
+    if_found -> search_romeo[label="no"];
+    search_romeo -> external_embargo -> update_orpheus -> record;     
+ 
+    zd_journal[label="Journal name\n in ZD"]
+    search_orpheus[label="Search for journal\n in Orpheus"]
+    search_result[label="Orpheus search\n result"]
+    if_found[label="Orpheus\n record\n found?"]
+    record[label="Orpheus record"]
+    if_valid[label="Orpheus\n record\n has reliable\n policy?"]
+    if_publisher[label="Relevant\n policy inherited\n from parent?"]
+    navigate_parent[label="Navigate to\n parent record"]
+    embargo[label="Relevant\n journal policy"]
+    search_romeo[label="Lookup journal policies\n in external datasets"]
+    external_embargo[label="Journal policies"]
+    update_orpheus[label="Update Orpheus with\n journal/publisher policies"]
+
+    # {rank=same; zd_journal record search_result embargo external_embargo}
+    
+}

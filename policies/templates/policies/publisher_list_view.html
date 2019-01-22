@@ -1,0 +1,8 @@
+{% extends "policies/base_list_view.html" %}
+
+{% block nodetype %}publishers{% endblock %}
+{% block nodetype1 %}Publishers{% endblock %}
+{% block nodetype2 %}publishers{% endblock %}
+{% block newnode %}<a href="{% url 'policies:publisher_add' %}">[add new]</a>{% endblock %}
+
+{% block docstring %}<p>Number in brackets is the count of journals by this publisher in the database.</p>{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "policies/base_list_view.html" %}
+
+{% block nodetype %}conferences{% endblock %}
+{% block nodetype1 %}Conferences{% endblock %}
+{% block nodetype2 %}conferences{% endblock %}
+{% block newnode %}<a href="{% url 'policies:conference_add' %}">[add new]</a>{% endblock %}

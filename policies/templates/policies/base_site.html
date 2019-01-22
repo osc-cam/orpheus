@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  {% load static %}
+  <link rel="icon" href="{% static 'icons/orpheus_icon.ico' %}">
+
+  {% block title %}<title>Orpheus</title>{% endblock %}
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  <!-- Add additional CSS in static file -->
+  <!--<link rel="stylesheet" href="{% static 'css/styles.css' %}">-->
+  {% block css %}<link rel="stylesheet" href="{% static 'css/starter-template.css' %}">{% endblock %}
+  {% block extrahead %}{% endblock %}
+</head>
+<body>
+    {% if not view.is_popup %}
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #701C10"> <!--#F8F8F8 navbar-light-->
+      <!--<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">-->
+        <a class="navbar-brand" href="{% url 'policies:index' %}">
+          <img src="{% static 'images/orpheus_logo_final_white.png' %}" height="35" class="d-inline-block align-top" alt="">
+          <!--Orpheus-->
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="{% url 'policies:journals' %}">Journals</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="{% url 'policies:publishers' %}">Publishers</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="{% url 'policies:conferences' %}">Conferences</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'policies:sources' %}">Sources</a>
+            </li>
+            <!--<li class="nav-item">-->
+              <!--<a class="nav-link" href="#">Link</a>-->
+            <!--</li>-->
+            <!--<li class="nav-item">-->
+              <!--<a class="nav-link disabled" href="#">Disabled</a>-->
+            <!--</li>-->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">More</a>
+              <div class="dropdown-menu" aria-labelledby="dropdown01">
+                <a class="dropdown-item" href="{% static 'docs/manual.pdf' %}">User manual</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'policies:problematic_policies' %}">Problematic policies</a>
+                <a class="dropdown-item" href="{% url 'policies:synonymchildren' %}">Children of synonyms</a>
+                <a class="dropdown-item" href="{% url 'policies:journalchildren' %}">Children of non-publisher nodes</a>
+                <a class="dropdown-item" href="{% url 'policies:grandchildren' %}">Grandchildren</a>
+                <a class="dropdown-item" href="{% url 'policies:synonymofsynonym' %}">Synonyms of synonyms</a>
+                <a class="dropdown-item" href="{% url 'policies:synonymswithpolicies' %}">Synonyms with linked policies</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'policies:about' %}">About</a>
+              </div>
+            </li>
+          </ul>
+          <ul class="navbar-nav float-right">
+            <!--<li class="nav-item">-->
+              <!--<a class="nav-link" href="#">About</a>-->
+            <!--</li>-->
+            <!--<li class="nav-item">-->
+              <!--<a class="nav-link" href="#">Contact</a>-->
+            <!--</li>-->
+            {% if user.is_authenticated %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="" id="dropdown02" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ user.get_username }}</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown02">
+                  <!--<a class="dropdown-item" href="#">My account</a>-->
+                  <a class="dropdown-item" href="{% url 'logout'%}?next={{request.path}}">Logout</a>
+                </div>
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <a class="nav-link active" href="{% url 'login'%}?next={{request.path}}">Login</a>
+              </li>
+            {% endif %}
+
+          </ul>
+          {% block searchbar %}{% endblock %}
+        </div>
+      </nav>
+    {% endif %}
+  <!--<main role="main" class="container">-->
+
+    <!--<div class="container">-->
+    <!--<div class="starter-template">-->
+    {% block content %}{% endblock %}
+      <!--<h1>Bootstrap starter template</h1>-->
+      <!--<p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>-->
+    <!--</div>-->
+
+  <!--</main>&lt;!&ndash; /.container &ndash;&gt;-->
+
+
+  <!-- Bootstrap core JavaScript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script>window.jQuery || document.write('<script src="{% static 'js/jquery.min.js' %}"><\/script>')</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+</body>
+</html>

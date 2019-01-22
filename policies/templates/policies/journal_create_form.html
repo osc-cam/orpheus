@@ -1,0 +1,12 @@
+{% extends "policies/base_form.html" %}
+
+{% load staticfiles %}
+
+{% block extrahead %}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+{{ form.media }}
+{% endblock %}
+
+{% block header %}
+    <h1 style="display: inline">Create new journal</h1>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "policies/base_site.html" %}
+
+{% load staticfiles %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/orpheus-base-style.css' %}">
+<link rel="stylesheet" href="{% static 'css/orpheus-base-form-style.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div id="nodeInfo" class="container">
+    {% block header %}{% endblock %}
+    <hr id="header-line">
+
+    {% if form.non_field_errors %}
+      <p class="errornote">
+      Please correct the errors below:
+      </p>
+      <ul class="errorlist nonfield">
+      {% for error in form.non_field_errors %}
+        <li>{{error}}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form action="" method="post">{% csrf_token %}
+        {% for field in form %}
+            <div class="fieldWrapper">
+                {{ field.errors }}
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label for="{{ field.label }}">
+                            {% if field.field.required %}
+                                <span style="color: red">*</span>
+                                <!--<span style="font-weight: bold">{{ field.label_tag }}</span>-->
+                            {% else %}
+                                <!--<span style="font-weight: normal">{{ field.label_tag }}</span>-->
+                            {% endif %}
+                            {{ field.label_tag }}
+                        </label>
+                    </div>
+                    <div class="col-sm-8">{{ field }}</div>
+                </div>
+                {% if field.help_text %}
+                <div class="row">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-8 helptext" style="padding-bottom: 0.75rem">{{ field.help_text|safe }}</div>
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="row buttons" style="padding-top: 2rem">
+            <div class="col-sm-6"></div>
+            <!--<div class="col-sm-2"><a class="button" href={{ object.get_absolute_url }}>Cancel</a></div>-->
+            <div class="col-sm-2">
+                {% if view.is_popup %}
+                    <input type=button value="Cancel" onClick="JavaScript:window.close();">
+                {% else %}
+                    <input type=button value="Cancel" onClick="javascript:history.go(-1);">
+                {% endif %}
+            </div>
+            <div class="col-sm-2"><input type="submit" value="Save" /></div>
+            <div class="col-sm-2"></div>
+        </div>
+    </form>
+</div>
+{% endblock %}

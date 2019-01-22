@@ -1,0 +1,6 @@
+{% extends "policies/base_list_view.html" %}
+
+{% block nodetype %}journals{% endblock %}
+{% block nodetype1 %}Journals{% endblock %}
+{% block nodetype2 %}journals{% endblock %}
+{% block newnode %}<a href="{% url 'policies:journal_add' %}">[add new]</a>{% endblock %}

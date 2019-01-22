@@ -1,0 +1,27 @@
+{% extends "policies/base_site.html" %}
+
+{% load staticfiles %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/orpheus-base-style.css' %}">
+<link rel="stylesheet" href="{% static 'css/orpheus-base-form-style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="nodeInfo" class="container">
+    <form action="" method="post">{% csrf_token %}
+        {% block message %}
+        <h3>Are you sure you want to delete</h3>
+        <h1>"{{ object }}"?</h1>
+        {% endblock %}
+    <div class="row buttons" style="padding-top: 2rem">
+            <div class="col-sm-6"></div>
+            <!--<div class="col-sm-2"><a class="button" href={{ object.get_absolute_url }}>Cancel</a></div>-->
+            <div class="col-sm-2">
+                <input type=button value="Cancel" onClick="javascript:history.go(-1);">
+            </div>
+            <div class="col-sm-2"><input type="submit" value="Confirm" /></div>
+            <div class="col-sm-2"></div>
+        </div>
+    </form>
+</div>
+{% endblock %}

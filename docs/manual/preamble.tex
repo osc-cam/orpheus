@@ -1,0 +1,78 @@
+\newcommand{\orpheusversion}{1.0}
+
+%ideas for tip boxes: https://tex.stackexchange.com/questions/66820/how-to-create-highlight-boxes-in-latex
+
+\newtcolorbox{tip}[1][]{
+%   parbox=false,
+  title=\bclampe\ \raisebox{0.5\height}{{\bfseries #1}},
+  colback=blue!5!white, 
+  colbacktitle=blue!20!white, 
+  coltitle=black,
+}
+
+\newtcolorbox{warn}[1][]{enhanced,
+  before skip=2mm,after skip=3mm,
+  boxrule=0.4pt,left=5mm,right=2mm,top=1mm,bottom=1mm,
+  colback=yellow!50,
+  colframe=yellow!20!black,
+  sharp corners,rounded corners=southeast,arc is angular,arc=3mm,
+  underlay={%
+    \path[fill=tcbcol@back!80!black] ([yshift=3mm]interior.south east)--++(-0.4,-0.1)--++(0.1,-0.2);
+    \path[draw=tcbcol@frame,shorten <=-0.05mm,shorten >=-0.05mm] ([yshift=3mm]interior.south east)--++(-0.4,-0.1)--++(0.1,-0.2);
+    \path[fill=yellow!50!black,draw=none] (interior.south west) rectangle node[white]{\Huge\bfseries !} ([xshift=4mm]interior.north west);
+    },
+  drop fuzzy shadow,#1}
+  
+% \newenvironment{tip}{\begin{tcolorbox}[colback=black!5!white, colbacktitle=black!20!white, coltitle=black, title=Tip]}{\end{tcolorbox}}
+
+% \pdfinfo{%
+%   /Title    ()
+%   /Author   ()
+%   /Creator  ()
+%   /Producer ()
+%   /Subject  ()
+%   /Keywords ()
+% }
+
+\tikzstyle{help lines}=[red!50,very thin]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Overlay Generator - Annotated Figures v0.0.1
+% Created with http://ff.cx/latex-overlay-generator/
+% If this generator saves you time, consider donating 5,- EUR! :-)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\annotatedFigureBoxCustom{bottom-left}{top-right}{label}{label-position}{box-color}{label-color}{border-color}{text-color}
+\newcommand*\annotatedFigureBoxCustom[8]{\draw[#5,ultra thick,rounded corners] (#1) rectangle (#2);\node at (#4) [fill=#6,thick,shape=circle,draw=#7,inner sep=2pt,font=\sffamily,text=#8] {\textbf{#3}};}
+%\annotatedFigureBox{bottom-left}{top-right}{label}{label-position}
+\newcommand*\annotatedFigureBox[3]{\annotatedFigureBoxCustom{#1}{#2}{#3}{#1}{black}{white}{black}{black}}
+\newcommand*\annotatedFigureText[4]{\node[draw=none, anchor=south west, text=#2, inner sep=0, text width=#3\linewidth,font=\sffamily] at (#1){#4};}
+\newenvironment {annotatedFigure}[1]{\centering\begin{tikzpicture}
+\node[anchor=south west,inner sep=0] (image) at (0,0) { #1};\begin{scope}[x={(image.south east)},y={(image.north west)}]}{\end{scope}\end{tikzpicture}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Commands for Schol Comms entities
+\newcommand{\journal}[1]{\emph{#1}}
+\newcommand{\imprint}[1]{\emph{#1}}
+\newcommand{\publisher}[1]{\emph{#1}}
+
+%%% Commands for Software/Applications
+\newcommand{\software}[1]{\emph{#1}\index{#1}}
+
+%%% Commands for interface components
+\newcommand{\dbfield}[1]{\emph{#1}\index{#1}}
+\newcommand{\dbtable}[1]{\emph{#1}\index{#1}} % Database tables, such as Contacts, Licences,  Responsibilities
+\newcommand{\icomponent}[1]{\textbf{#1}\index{#1}} % components of the interface: navigation bar, etc
+\newcommand{\menuitem}[1]{\emph{#1}\index{#1}}
+\newcommand{\viewtype}[1]{\emph{#1}\index{#1}} % list view, detail view, etc
+\newcommand{\view}[1]{\emph{#1}\index{#1}} % Jounals, Publishers, Sources, etc
+\newcommand{\fieldvalue}[1]{\emph{#1}\index{#1}}
+\newcommand{\action}[1]{\emph{#1}\index{#1}} % action buttons, such as "add new" "edit record" etc
+%%%
+
+%%% Commands for figure captions
+\newcommand{\abbv}[2]{\textbf{#1}, #2}
+\newcommand{\captionindex}[1]{#1\index{#1}}
+
+%%% Commands for standard elements
+\newcommand{\figp}[1]{Fig.~#1}
+\newcommand{\figt}[1]{Fig.~#1}
