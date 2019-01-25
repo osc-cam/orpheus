@@ -37,8 +37,27 @@
             <div class="col-sm-4">File</div>
             <div class="col-sm-8">{{ source.file }}</div>
         {% endif %}
+
     </div>
 
+</div> <!--/container-->
+
+<div id="source_notes" class="container">
+    <hr>
+    <h2 style="display: inline">Notes</h2>
+    <p class="action-links-inline">
+      <a href="{{ source.get_absolute_url }}addnote">[add note]</a>
+    </p>
+    {% if source.source_notes.all %}
+        <!--<hr id="header-line">-->
+        {% for note in source.source_notes.all %}
+            <div class="row">
+                <div class="col-md-1"></div>
+                <div class="col-md-10">{{ note.text }}</div>
+                <div class="col-md-1"></div>
+            </div>
+        {% endfor %}
+    {% endif %}
 </div> <!--/container-->
 
 <div id="node_list" class="container">

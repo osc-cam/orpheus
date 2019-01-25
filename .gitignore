@@ -1,3 +1,4 @@
+__pycache__
 connectors/datasets
 connectors/psql_dev_scripts
 connectors/20180817-083926_tandf_elsevier_wiley_cup_oup_doaj_romeo_wos.dump

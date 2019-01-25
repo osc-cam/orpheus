@@ -70,6 +70,12 @@ a {
   padding-top: 1rem;
 }
 
+.col-md-8 {
+  text-align: center;
+  text-indent: 1rem;
+  padding-bottom: 0.5rem;
+}
+
 
 /* For some reason the classes below is
 completely ignored when defined here,

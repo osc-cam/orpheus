@@ -1589,14 +1589,15 @@ class Note(models.Model):
     text = models.TextField()
     deletion_request = models.NullBooleanField()
     node = models.ForeignKey(Node, on_delete=models.CASCADE, blank=True, null=True)
-    source = models.ForeignKey(Source, on_delete=models.CASCADE, blank=True, null=True)
-    oastatus = models.ForeignKey(OaStatus, on_delete=models.CASCADE, related_name='parent_oa_status', blank=True,
+    source = models.ForeignKey(Source, on_delete=models.CASCADE, blank=True, null=True, related_name='source_notes')
+    oastatus = models.ForeignKey(OaStatus, on_delete=models.CASCADE, related_name='oa_status_notes', blank=True,
                                    null=True)
-    goldpolicy = models.ForeignKey(GoldPolicy, on_delete=models.CASCADE, related_name='parent_gold_policy', blank=True,
+    goldpolicy = models.ForeignKey(GoldPolicy, on_delete=models.CASCADE, related_name='gold_policy_notes', blank=True,
                                    null=True)
-    greenpolicy = models.ForeignKey(GreenPolicy, on_delete=models.CASCADE, related_name='parent_green_policy', blank=True,
+    greenpolicy = models.ForeignKey(GreenPolicy, on_delete=models.CASCADE, related_name='green_policy_notes', blank=True,
                                    null=True)
-    retrospective_oa_policy = models.ForeignKey(RetrospectiveOaPolicy, on_delete=models.CASCADE, related_name='parent_retrospective_policy', blank=True,
+    retrospective_oa_policy = models.ForeignKey(RetrospectiveOaPolicy, on_delete=models.CASCADE,
+                                                related_name='retrospective_policy_notes', blank=True,
                                    null=True)
 # The class below has been incorporated into Note
 # class DeletionRequest(models.Model):

@@ -140,6 +140,18 @@ urlpatterns += [
     url(r'^source/(?P<pk>[0-9]+)/confirmdelete/$', views.SourceConfirmDelete.as_view(), name='source_confirm_delete'),
 ]
 
+# Note forms
+urlpatterns += [
+    url(r'^source/(?P<pk>[0-9]+)/addnote/$', views.SourceAddNote.as_view(), name='source_add_note'),
+    # url(r'^contact/(?P<pk>[0-9]+)/addnote/$', views.ContactAddNote.as_view(), name='contact_add_note'),
+    # url(r'^deal/(?P<pk>[0-9]+)/addnote/$', views.DealAddNote.as_view(), name='deal_add_note'),
+    # url(r'^epmc/(?P<pk>[0-9]+)/addnote/$', views.EpmcAddNote.as_view(), name='epmc_add_note'),
+    url(r'^greenpolicies/(?P<pk>[0-9]+)/addnote/$', views.GreenPolicyAddNote.as_view(), name='green_policy_add_note'),
+    url(r'^goldpolicies/(?P<pk>[0-9]+)/addnote/$', views.GoldPolicyAddNote.as_view(), name='gold_policy_add_note'),
+    url(r'^oastatus/(?P<pk>[0-9]+)/addnote/$', views.OaStatusAddNote.as_view(), name='oa_status_add_note'),
+    # url(r'^(?P<pk>[0-9]+)/addnote/$', views.NodeAddNote.as_view(), name='node_add_note'),
+]
+
 # Licence.json forms
 urlpatterns += [
     url(r'^licence/add/$', views.LicenceCreate.as_view(), name='licence_add'),

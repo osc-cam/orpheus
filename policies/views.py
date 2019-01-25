@@ -301,11 +301,13 @@ class VersionListAPIView(generics.ListCreateAPIView):
 class NodeFilter(BaseFilter):
     search_fields = {
         'search_text': ['name', 'issn', 'eissn'],
+        'search_name_exact': {'operator': '__exact', 'fields': ['name', 'issn', 'eissn']},
     }
 
 class SourceFilter(BaseFilter):
     search_fields = {
         'search_text': ['description', 'url'],
+        'search_name_exact': {'operator': '__exact', 'fields': ['description', 'url']},
     }
 
 # region Staticpages
@@ -796,8 +798,10 @@ class SourceAutocomplete(autocomplete.Select2QuerySetView):
             return models.Source.objects.none()
         qs = models.Source.objects.all()
         if self.q:
-            qs = qs.filter(description__istartswith=self.q)
-        return qs
+            qsr = qs.filter(description__istartswith=self.q)
+            if not qsr:
+                qsr = qs.filter(url__iexact=self.q)
+        return qsr
 
 class SourceListView(LoginRequiredMixin, SearchListView):
     '''
@@ -809,8 +813,11 @@ class SourceListView(LoginRequiredMixin, SearchListView):
     paginate_by = 50
     template_name = "policies/source_list_view.html"
     # additional configuration for SearchListView
-    form_class = forms.ListViewSearchForm
+    form_class = forms.ListViewSearchFormSources
     filter_class = SourceFilter
+
+    def get_queryset(self):
+        return models.Source.objects.order_by('description')
 
 class SourceDetail(LoginRequiredMixin, DetailView):
     model = models.Source
@@ -1203,9 +1210,66 @@ class ContactConfirmDelete(PermissionRequiredMixin, DeleteView):
         return reverse_lazy('policies:detail', kwargs={'pk': self.node.id})
 # endregion
 
+# region add notes
+class CreateNote(CreatePopupMixin, LoginRequiredMixin, CreateView):
+    model = models.Note
+    form_class = forms.NoteForm
+    #fields = '__all__' ## This is now handled by NoteForm
+    #initial = {'vetted' : True, 'vetted_date' : date.today()} ## The only problem with this is that it overwrites vetted_date if it already exists; ideally we should check the existing value of that field
+    template_name_suffix = '_create_form'
+
+    def get_context_data(self, **kwargs):
+        self.policy = SingleObjectMixin.get_object(self, queryset=self.get_queryset())
+        context = super(CreateNote, self).get_context_data(**kwargs)
+        context['note_parent'] = self.policy
+        return context
+
+    def get_success_url(self):
+        self.policy = SingleObjectMixin.get_object(self, queryset=self.get_queryset())
+        self.node = self.policy.node
+        return reverse_lazy('policies:detail', kwargs={'pk': self.node.id})
+
+class OaStatusAddNote(CreateNote):
+    def get_queryset(self):
+        return models.OaStatus.objects.filter(id=self.kwargs['pk'])
+
+    def form_valid(self, form): # https://docs.djangoproject.com/en/1.11/topics/class-based-views/generic-editing/
+        policy = SingleObjectMixin.get_object(self, queryset=self.get_queryset())
+        form.instance.oastatus = policy
+        return super(CreateNote, self).form_valid(form)
 
 
+class GreenPolicyAddNote(CreateNote):
+    def get_queryset(self):
+        return models.GreenPolicy.objects.filter(id=self.kwargs['pk'])
 
+    def form_valid(self, form): # https://docs.djangoproject.com/en/1.11/topics/class-based-views/generic-editing/
+        policy = SingleObjectMixin.get_object(self, queryset=self.get_queryset())
+        form.instance.greenpolicy = policy
+        return super(CreateNote, self).form_valid(form)
+
+class GoldPolicyAddNote(CreateNote):
+    def get_queryset(self):
+        return models.GoldPolicy.objects.filter(id=self.kwargs['pk'])
+
+    def form_valid(self, form): # https://docs.djangoproject.com/en/1.11/topics/class-based-views/generic-editing/
+        policy = SingleObjectMixin.get_object(self, queryset=self.get_queryset())
+        form.instance.goldpolicy = policy
+        return super(CreateNote, self).form_valid(form)
+
+class SourceAddNote(CreateNote):
+    def get_queryset(self):
+        return models.Source.objects.filter(id=self.kwargs['pk'])
+
+    def form_valid(self, form): # https://docs.djangoproject.com/en/1.11/topics/class-based-views/generic-editing/
+        policy = SingleObjectMixin.get_object(self, queryset=self.get_queryset())
+        form.instance.source = policy
+        return super(CreateNote, self).form_valid(form)
+
+    def get_success_url(self):
+        self.policy = SingleObjectMixin.get_object(self, queryset=self.get_queryset())
+        return reverse_lazy('policies:source_detail', kwargs={'pk': self.policy.id})
+# endregion
 
 class JournalbyPublisherListView(LoginRequiredMixin, SearchListView):
     '''

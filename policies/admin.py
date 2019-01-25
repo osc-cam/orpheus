@@ -6,7 +6,7 @@ from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.admin.helpers import ActionForm
 
 from .models import Node, Source, OaStatus, GoldPolicy, GreenPolicy, RetrospectiveOaPolicy, Contact, Version, Licence, \
-    Outlet, Responsibility#, Output
+    Outlet, Responsibility, Note#, Output
 
 class UpdateNodeActionForm(ActionForm):
     parent_id = forms.IntegerField(required=False)
@@ -84,4 +84,5 @@ admin_site.register(Version)
 admin_site.register(Licence)
 admin_site.register(Outlet)
 admin_site.register(Responsibility)
+admin_site.register(Note)
 # admin_site.register(Output)

@@ -4,7 +4,7 @@ from django_addanother.widgets import AddAnotherWidgetWrapper, AddAnotherEditSel
 from dal import autocomplete
 from . import models
 
-
+# region Node forms
 class NodeForm(forms.ModelForm):
     vetted = forms.BooleanField(disabled=True)
     vetted_date = forms.DateTimeField(disabled=True)
@@ -63,6 +63,8 @@ class ConferenceNodeForm(NodeForm):
     class Meta(NodeForm.Meta):
         exclude = ['type', 'romeo_id']
 
+# endregion
+
 class DeleteForm(forms.ModelForm):
     class Meta:
         model = models.Note
@@ -80,11 +82,26 @@ class LicenceForm(forms.ModelForm):
         fields = '__all__'
 
 class ListViewSearchForm(forms.Form):
-    search_text = forms.CharField(label='',
+    search_text = forms.CharField(label='Phrase match',
                                   required=False,
-                                  widget=forms.TextInput()
+                                  widget=forms.TextInput(attrs={'placeholder': 'name or issn'})
+                                  )
+    search_name_exact = forms.CharField(label='Exact match',
+                                  required=False,
+                                  widget=forms.TextInput(attrs={'placeholder': 'name or issn'})
                                   )
 
+class ListViewSearchFormSources(forms.Form):
+    search_text = forms.CharField(label='Phrase match',
+                                  required=False,
+                                  widget=forms.TextInput(attrs={'placeholder': 'name or url'})
+                                  )
+    search_name_exact = forms.CharField(label='Exact match',
+                                  required=False,
+                                  widget=forms.TextInput(attrs={'placeholder': 'name or url'})
+                                  )
+
+# region policies
 class NodeAttributeForm(forms.ModelForm):
     vetted = forms.BooleanField(disabled=True)
     vetted_date = forms.DateTimeField(disabled=True)
@@ -141,8 +158,17 @@ class EpmcForm(NodeAttributeForm):
 class DealForm(NodeAttributeForm):
     class Meta(NodeAttributeForm.Meta):
         model = models.Deal
+# endregion
 
 class ContactForm(forms.ModelForm):
     class Meta:
         model = models.Contact
         exclude = ['node']
+
+# region Note forms
+class NoteForm(forms.ModelForm):
+    class Meta:
+        model = models.Note
+        fields = ['text']
+        labels = {'text': 'Note', }
+# endregion

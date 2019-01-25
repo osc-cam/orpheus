@@ -161,15 +161,18 @@
                             <p style="display: inline"><img src="{% static 'images/icon-unknown.svg' %}"></p>
                     {% endif %}
                     {{ policy.get_oa_status_display }} <span class="text-danger action-links-inline">{{ oastatus_prov }}</span>
+
                     {% if policy.node == node %} <!-- status not inherited from parent -->
                         <p class="action-links-inline">
                             <a href="{% url 'policies:oa_status_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:oa_status_add_note' pk=policy.id %}">[add note]</a>
                             <a href="{% url 'policies:oa_status_delete' pk=policy.id %}">[delete]</a>
                             {% if policy.get_deletion_requests and perms.policies.delete_oa_status %}
                                 <a href="{% url 'policies:oa_status_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
                             {% endif %}
                         </p>
                     {% endif %}
+
                 </div>
             </div>
 
@@ -185,6 +188,20 @@
             {% include "policies/field_policy_source.html" %}
             {% include "policies/fields/field_policy_last_checked.html" %}
             {% include "policies/fields/field_policy_superseded.html" %}
+
+            {% if policy.oa_status_notes.all %}
+                <!--<hr id="header-line">-->
+                <div class="row">
+                    <div class="col-sm-12">Notes</div>
+                </div>
+                {% for note in policy.oa_status_notes.all %}
+                    <div class="row">
+                        <div class="col-md-2"></div>
+                        <div class="col-md-8">{{ note.text }}</div>
+                        <div class="col-md-2"></div>
+                    </div>
+                {% endfor %}
+            {% endif %}
 
         {% endfor %}
     {% endif %}
@@ -208,6 +225,7 @@
                     {% if policy.node == node %} <!-- status not inherited from parent -->
                         <p class="action-links-inline">
                             <a href="{% url 'policies:gold_policy_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:gold_policy_add_note' pk=policy.id %}">[add note]</a>
                             <a href="{% url 'policies:gold_policy_delete' pk=policy.id %}">[delete]</a>
                             {% if policy.get_deletion_requests and perms.policies.delete_goldpolicy %}
                                 <a href="{% url 'policies:gold_policy_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
@@ -279,6 +297,20 @@
             {% include "policies/fields/field_policy_last_checked.html" %}
             {% include "policies/fields/field_policy_superseded.html" %}
 
+            {% if policy.gold_policy_notes.all %}
+                <!--<hr id="header-line">-->
+                <div class="row">
+                    <div class="col-sm-12">Notes</div>
+                </div>
+                {% for note in policy.gold_policy_notes.all %}
+                    <div class="row">
+                        <div class="col-md-2"></div>
+                        <div class="col-md-8">{{ note.text }}</div>
+                        <div class="col-md-2"></div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
         {% endfor %}
     {% endif %}
 </div> <!--/container-->
@@ -304,6 +336,7 @@
                     {% if policy.node == node %} <!-- status not inherited from parent -->
                         <p class="action-links-inline">
                             <a href="{% url 'policies:green_policy_update' pk=policy.id %}">[edit]</a>
+                            <a href="{% url 'policies:green_policy_add_note' pk=policy.id %}">[add note]</a>
                             <a href="{% url 'policies:green_policy_delete' pk=policy.id %}">[delete]</a>
                             {% if policy.get_deletion_requests and perms.policies.delete_greenpolicy %}
                                 <a href="{% url 'policies:green_policy_confirm_delete' pk=policy.id %}">[confirm deletion]</a>
@@ -405,6 +438,20 @@
             {% include "policies/field_policy_source.html" %}
             {% include "policies/fields/field_policy_last_checked.html" %}
             {% include "policies/fields/field_policy_superseded.html" %}
+
+            {% if policy.green_policy_notes.all %}
+                <!--<hr id="header-line">-->
+                <div class="row">
+                    <div class="col-sm-12">Notes</div>
+                </div>
+                {% for note in policy.green_policy_notes.all %}
+                    <div class="row">
+                        <div class="col-md-2"></div>
+                        <div class="col-md-8">{{ note.text }}</div>
+                        <div class="col-md-2"></div>
+                    </div>
+                {% endfor %}
+            {% endif %}
 
         {% endfor %}
     {% endif %}

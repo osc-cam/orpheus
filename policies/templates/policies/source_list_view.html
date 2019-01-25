@@ -13,20 +13,10 @@
 </style>
 {% endblock %}
 
-{% block searchbar %}
-<form class="form-inline my-2 my-lg-0" action="" method="GET">
-  {{ form }}
-  <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search sources</button>
-  </fieldset>
-</form>
-{% endblock %}
+{% block searchbar %}{% endblock %}
 
 {% block content %}
 <div class="container">
-
-    <form class="form-inline float-right" action="" method="GET">
-
-    </form>
 
     <h1 style="display: inline">Sources</h1>
     <p class="action-links-inline">
@@ -34,6 +24,14 @@
     </p>
 
     <hr id="header-line">
+
+    <form class="m-2 my-lg-0 pl-4 pb-4" action="" method="GET">
+        <!--<div class="form-group">-->
+            {{ form.as_p }}
+            <button class="btn btn-primary my-2 my-sm-0" type="submit">Search sources</button>
+            </fieldset>
+        <!--</div>-->
+    </form>
 
     {% if source_list %}
     <ul style="list-style-type: none">
