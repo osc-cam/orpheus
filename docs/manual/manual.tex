@@ -7,7 +7,13 @@
 \graphicspath{{./images/}{./images/screenshots/}{./process-maps/}{../../static/images}}
 \usepackage{caption}
 \usepackage{wrapfig}
-\usepackage[pdftex, bookmarks=true]{hyperref}
+\usepackage[pdftex, 
+	    bookmarks=true, 
+	    colorlinks=true,
+	    linkcolor=black,
+	    urlcolor=blue,
+	    citecolor=black,
+	    anchorcolor=blue]{hyperref}
 \usepackage[]{geometry}
 \geometry{a4paper}
 \usepackage[x11names, rgb]{xcolor}
@@ -17,6 +23,7 @@
 \usepackage[most]{tcolorbox}
 \usepackage[tikz]{bclogo}
 \usepackage{varioref}
+\usepackage{listings}
 
 % \setcounter{secnumdepth}{3}
 % \setcounter{tocdepth}{3}
@@ -60,6 +67,71 @@
 \section{Introduction}
 
 Orpheus is a database of academic journals and their self-archiving policies written in \href{https://www.djangoproject.com}{Django}. It features web frontends for users and administrators and a RESTful API, tailored for integration with DSpace and other institutional repository platforms.
+
+\section{Installation}
+
+\lstset{language=bash}
+
+\subsection{Obtaining a copy of Orpheus}
+
+You may either download and extract a zip file from \url{https://github.com/osc-cam/orpheus/archive/master.zip} or clone the git repository by issuing the following command in your UNIX terminal:
+
+\begin{lstlisting}
+  $ git clone https://github.com/osc-cam/orpheus.git
+\end{lstlisting}
+
+\subsection{Setting up a database backend}
+
+Django supports many different database backends\footnote{see \url{https://docs.djangoproject.com/en/1.11/ref/databases} for details and notes}, which may or may not work with Orpheus out of the box. Orpheus was developed and has only been tested using a PostgreSQL backend, so this is the recommended database engine.
+
+Once you have created an empty database in the engine of your choice\footnote{if you decide to use PostgreSQL and you are running Ubuntu or derivatives, a good guide on configuring the database is available at \url{https://www.codeproject.com/Articles/898303/Installing-and-Configuring-PostgreSQL-on-Linux-Min}. For other databases and operational systems, Google is your friend!}, you will need to edit the value of \mbox{DATABASES} in file \path{orpheus/settings_local_example.py} to match the parameters of the database you have just created.
+
+While you are editing this file, you may also wish to change the value of \mbox{SECRET\_KEY}. If your instance of Orpheus will be reachable from outside of your local network, you should review your settings before deployment\footnote{see \url{https://docs.djangoproject.com/en/1.11/howto/deployment/checklist} for recommended settings}.
+
+Once you have completed this, rename the file \path{orpheus/settings_local_example.py} to \path{orpheus/settings_local.py}
+
+\subsection{Creating and activating a virtual environment (optional, but recommended)}
+
+To create and activate new virtual environment for Orpheus, issue the following commands:
+
+\begin{lstlisting}
+  $ python3 -m venv orpheus-env
+  $ source orpheus-env/bin/activate
+\end{lstlisting}
+
+\subsection{Install the dependencies}
+
+To install all Orpheus dependencies, navigate to the folder containing the code you downloaded or cloned from GitHub and issue the command:
+
+ \begin{lstlisting}
+  $ pip3 install -r requirements.txt
+ \end{lstlisting}
+
+\subsection{Apply migrations}
+
+To create the database fields that Orpheus will need to store its data, apply migrations by running:
+
+ \begin{lstlisting}
+  $ python3 manage.py migrate
+ \end{lstlisting}
+
+\subsection{Create a superuser}
+
+You will need at least one user who can login to Orpheus, so run the following command to create it:
+
+ \begin{lstlisting}
+  $ python3 manage.py createsuperuser
+ \end{lstlisting} 
+ 
+\subsection{Test your Installation}
+
+You should now have a functional development instance of Orpheus! To test it, issue the command:
+
+\begin{lstlisting}
+  $ python3 manage.py runserver
+ \end{lstlisting}
+ 
+And then point your favourite browser to \url{http://127.0.0.1:8000/}. You should see Orpheus' homepage.
 
 \section{Frontend for editors}
 
