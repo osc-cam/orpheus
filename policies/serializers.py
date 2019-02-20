@@ -63,6 +63,30 @@ class OaStatusSerializer(serializers.ModelSerializer):
         model = models.OaStatus
         fields = '__all__'
 
+class DealSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Deal
+        fields = '__all__'
+
+class DealSerializer(serializers.ModelSerializer):
+    source = SourceSerializer(read_only=True)
+
+    class Meta:
+        model = models.Deal
+        fields = '__all__'
+
+class EpmcSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Epmc
+        fields = '__all__'
+
+class EpmcSerializer(serializers.ModelSerializer):
+    source = SourceSerializer(read_only=True)
+
+    class Meta:
+        model = models.Epmc
+        fields = '__all__'
+
 class NodeSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Node
@@ -95,6 +119,11 @@ class CambridgeSerializer(serializers.ModelSerializer):
     zd_apc_range = serializers.ReadOnlyField()
     zd_gold_licence_options = serializers.ReadOnlyField()
     zd_commitment_guidance = serializers.ReadOnlyField()
+    zd_deal = serializers.ReadOnlyField()
+    zd_epmc_participation = serializers.ReadOnlyField()
+    zd_epmc_embargo_months = serializers.ReadOnlyField()
+    zd_epmc_open_licence = serializers.ReadOnlyField()
+    zd_epmc_deposit_status = serializers.ReadOnlyField()
     romeo_url = serializers.ReadOnlyField()
 
     class Meta:
@@ -102,7 +131,8 @@ class CambridgeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'issn', 'eissn', 'url', 'apollo_am_embargo_months', 'apollo_vor_embargo_months',
                   'zd_publisher', 'zd_green_allowed_version', 'zd_embargo_duration', 'zd_green_licence',
                   'zd_journal_oa_status', 'zd_apc_range', 'zd_gold_licence_options', 'zd_commitment_guidance',
-                  'romeo_url']
+                  'zd_deal', 'zd_epmc_participation', 'zd_epmc_embargo_months', 'zd_epmc_open_licence',
+                  'zd_epmc_deposit_status', 'romeo_url']
 
 class BaseNodeSerializer(serializers.ModelSerializer):
     synonyms = NodeSimpleSerializer(many=True, read_only=True)

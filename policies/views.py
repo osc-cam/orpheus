@@ -172,61 +172,65 @@ class NodeSimpleListAPIView(NodeListAPIView):
 
 class NodeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Node.objects.all()
-    serializer_class = serializers.NodeSerializer
+    serializer_class = serializers.NodeSimpleSerializer
+    # serializer_class = serializers.NodeSerializer
 
-class GoldPolicyListAPIView(generics.ListCreateAPIView):
-    serializer_class = serializers.GoldPolicySerializer
+class PolicyListAPIView(generics.ListCreateAPIView):
+    '''
+    Generic Policy API list view. Each of the actual policy API list views subclasses this view
+    '''
+    model = None
 
     def get_queryset(self):
         """
         Optionally restricts the returned nodes by filtering
         against `node` query parameter in the URL.
         """
-        queryset = models.GoldPolicy.objects.all()
+        queryset = self.model.objects.all()
         nodeid = self.request.query_params.get('node', None)
         if nodeid is not None:
             queryset = queryset.filter(node__exact=nodeid)
         return queryset
+
+class GoldPolicyListAPIView(PolicyListAPIView):
+    serializer_class = serializers.GoldPolicySerializer
+    model = models.GoldPolicy
+
+class GreenPolicyListAPIView(PolicyListAPIView):
+    serializer_class = serializers.GreenPolicySimpleSerializer
+    model = models.GreenPolicy
+
+class OaStatusListAPIView(PolicyListAPIView):
+    serializer_class = serializers.OaStatusSimpleSerializer
+    model = models.OaStatus
+
+class DealListAPIView(PolicyListAPIView):
+    serializer_class = serializers.DealSimpleSerializer
+    model = models.Deal
+
+class EpmcListAPIView(PolicyListAPIView):
+    serializer_class = serializers.EpmcSimpleSerializer
+    model = models.Epmc
 
 class GoldPolicyDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.GoldPolicy.objects.all()
     serializer_class = serializers.GoldPolicySerializer
 
-class GreenPolicyListAPIView(generics.ListCreateAPIView):
-    serializer_class = serializers.GreenPolicySimpleSerializer
-
-    def get_queryset(self):
-        """
-        Optionally restricts the returned nodes by filtering
-        against `node` query parameter in the URL.
-        """
-        queryset = models.GreenPolicy.objects.all()
-        nodeid = self.request.query_params.get('node', None)
-        if nodeid is not None:
-            queryset = queryset.filter(node__exact=nodeid)
-        return queryset
-
 class GreenPolicyDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.GreenPolicy.objects.all()
     serializer_class = serializers.GreenPolicySerializer
 
-class OaStatusListAPIView(generics.ListCreateAPIView):
-    serializer_class = serializers.OaStatusSimpleSerializer
-
-    def get_queryset(self):
-        """
-        Optionally restricts the returned nodes by filtering
-        against `node` query parameter in the URL.
-        """
-        queryset = models.OaStatus.objects.all()
-        nodeid = self.request.query_params.get('node', None)
-        if nodeid is not None:
-            queryset = queryset.filter(node__exact=nodeid)
-        return queryset
-
 class OaStatusDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.OaStatus.objects.all()
     serializer_class = serializers.OaStatusSerializer
+
+class DealDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.Deal.objects.all()
+    serializer_class = serializers.DealSerializer
+
+class EpmcDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.Epmc.objects.all()
+    serializer_class = serializers.EpmcSerializer
 
 class SourceListAPIView(generics.ListCreateAPIView):
     serializer_class = serializers.SourceSerializer

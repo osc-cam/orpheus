@@ -22,3 +22,7 @@ activate_venv.sh
 .gitignore
 .git
 .idea
+orpheus-env
+*.log
+requirements.txt
+*/__pycache__

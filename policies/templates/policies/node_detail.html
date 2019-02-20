@@ -116,7 +116,7 @@
         <!--<div class="col-sm-8">{{ node.pk }}</div>-->
     <!--</div>-->
 
-    {% if node.get_romeo_url or node.get_doaj_url %}
+    {% if node.get_romeo_url or node.get_doaj_url or node.epmc_url %}
         <div class="row">
             <div class="col-sm-4"></div>
             <div class="col-sm-8">
@@ -126,6 +126,9 @@
                 {% endif %}
                 {% if node.get_doaj_url %}
                     <a href="{{ node.get_doaj_url }}"><img width="15" src="{% static 'icons/doaj_favicon.ico' %}"></a>
+                {% endif %}
+                {% if node.epmc_url %}
+                    <a href="{{ node.epmc_url }}"><img width="15" src="{% static 'icons/epmc_favicon.ico' %}"></a>
                 {% endif %}
             </div>
         </div>

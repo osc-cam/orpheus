@@ -67,6 +67,7 @@ def optimal_green_policies(combination):
     comb10 = [0, 999, 0, 12, 0, 12, 999, 999]
     comb11 = [0, 999, 6, 999, 5, 999, 999, 999]
     comb12 = [0, 0, 6, 6, 6, 6, 999, 999]
+    comb13 = [0, 12, 0, 999, 0, 999, 999, 999] #NEW!
 
     if combination == comb1:
         policy1 = [999, ALL_OUTLETS, [VOR_ID]]
@@ -106,6 +107,7 @@ def optimal_green_policies(combination):
         policy3 = [0, [WEBSITE_ID], [AM_ID]]
         array = [policy1, policy2, policy3]
     elif combination == comb8:
+        #comb8 = [0, 0, 0, 999, 0, 999, 999, 999]
         policy1 = [999, [INST_REPO_ID, SUBJ_REPO_ID, COMMERCIAL_ID, PUBMED_ID, SOCIAL_ID], [VOR_ID]]
         policy2 = [999, [COMMERCIAL_ID, SOCIAL_ID], [AM_ID]]
         policy3 = [0, [WEBSITE_ID, INST_REPO_ID, SUBJ_REPO_ID, PUBMED_ID], [AM_ID]]
@@ -133,6 +135,14 @@ def optimal_green_policies(combination):
         policy2 = [0, [WEBSITE_ID], [AM_ID, VOR_ID]]
         policy3 = [6, [INST_REPO_ID, SUBJ_REPO_ID, PUBMED_ID], [AM_ID, VOR_ID]]
         array = [policy1, policy2, policy3]
+    elif combination == comb13:
+        #comb13 = [0, 12, 0, 999, 0, 999, 999, 999] #NEW!
+        policy1 = [999, [INST_REPO_ID, SUBJ_REPO_ID, COMMERCIAL_ID, PUBMED_ID, SOCIAL_ID], [VOR_ID]]
+        policy2 = [999, [COMMERCIAL_ID, SOCIAL_ID], [AM_ID]]
+        policy3 = [0, [WEBSITE_ID, INST_REPO_ID, SUBJ_REPO_ID, PUBMED_ID], [AM_ID]]
+        policy4 = [12, [WEBSITE_ID], [VOR_ID]]
+        array = [policy1, policy2, policy3, policy4]
+
     else:
         error_message = 'Combination {} not supported'.format(combination)
         logger.critical(error_message)
@@ -143,8 +153,8 @@ def optimal_green_policies(combination):
 
 def main():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    source_parser = generic_parser.SourceParser('CUP APC Price List 2018.7, 24.v.2018',
-              url='https://www.cambridge.org/core/services/aop-file-manager/file/5783738dbd8dfd4e3283c3f2')
+    source_parser = generic_parser.SourceParser('CUP APC Price List 2019.04 24.i.2019',
+              url=None)
     SOURCE_ID = source_parser.match_or_create_source()
 
     cup_website_parser = generic_parser.SourceParser('CUP website: Green Open Access Policy for Journals',
@@ -157,8 +167,7 @@ def main():
     p_parser.node_id, p_parser.node_record = generic_parser.act_on_orpheus_match(p_parser, p_node_id, p_node_record,
                                                                                  p_match_type)
 
-    inputfile = os.path.join(BASE_DIR, 'datasets', 'Cambridge_Journals_APC_price_list_2018.7.csv')
-    # inputfile = os.path.join(BASE_DIR, 'datasets', 'cup_test.csv')
+    inputfile = os.path.join(BASE_DIR, 'datasets', 'Cambridge-Journals-APC-price-list-2019.04.csv')
 
     cup2orpheus_status = {
         '': 'SUBSCRIPTION',
@@ -169,12 +178,15 @@ def main():
 
     cup_embargo2months = {
         'On acceptance': 0,
+        'On Acceptance': 0,
         'On acceptance (SSRN deposit permitted)': 0,
         'On publication': 0,
         "Publisher's version pdf, no sooner than first publication of the article": 0,
         '5 months after publication': 5,
         '6 months after publication': 6,
+        '6months after publication': 6,
         "Publisher's version pdf, no sooner than six months after first publication of the article": 6,
+        '12 months after acceptance': 12,
         '12 months after publication': 12,
         '13 months after publication': 13,
         'Abstract only plus link to Cambridge site': 999, # DISALLOWED
@@ -191,11 +203,15 @@ def main():
     tdollars = re.compile('\$[0-9,]+')
 
     green_combinations = []
+    embargo_strings = []
     with open(inputfile, encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         row_counter = 0
         for row in reader:
             row_counter += 1
+            # if row_counter < 282:
+            #     logger.warning('Skipped; remember to delete or comment out this line later')
+            #     continue
             jname = row['Journal'].replace('  ', ' ').strip()
             logger.info('-------({}) Working on journal {}'.format(row_counter, jname))
             jurl = row['URL'].strip()
@@ -256,6 +272,8 @@ def main():
                                      pmc_AAM[0], pmc_VoR[0], social_AAM[0], social_VoR[0]]
             if green_comb not in green_combinations:
                 green_combinations.append(green_comb)
+
+            # continue # uncomment this to produce spreadsheet of all green policy combinations in dataset
 
             policies_array = optimal_green_policies(green_comb)
 
@@ -358,6 +376,8 @@ def main():
                 gold.node = preferred_node_id
                 logger.debug('Calling j_parser.PolicyMatcher(j_parser, policy_type=gold).match(**gold.as_dict())')
                 j_parser.PolicyMatcher(j_parser, policy_type='gold').match(**gold.as_dict())
+
+    pprint(embargo_strings)
 
     with open('cup_green_combinations.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)

@@ -7,8 +7,12 @@ import json
 import logging
 import random
 import sys
-from unidecode import unidecode
 import urllib.parse
+from datetime import date, datetime, timezone
+from dateutil import parser
+from dateutil.relativedelta import relativedelta
+from unidecode import unidecode
+from django.core.serializers.json import DjangoJSONEncoder
 
 import doaj_client
 import orpheus_client
@@ -39,7 +43,7 @@ def convert_illegal_characters(str):
         str = str.replace(k, v)
     return str
 
-def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
+def act_on_orpheus_match(npi, mr_id, mr, match_type, prompt_responses=None, test_mode=False):
     '''
     This function attempts to make a distinction between name matches due to synonymy and matches due to homonymy.
     If a match proves to be a synonym, no new Orpheus node will be created. If it proves to be a homonym,
@@ -50,9 +54,10 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
     :param npi: node_parser_instance i.e. an instance of the NodeParser class representing the prospective
                 new node (queried node)
     :param mr_id: matched_record_id i.e. the id of the node record returned by the Orpheus API as a match for npi
-    :param mr: matched_record i.e. the node record returned by the Orpheus API as a match for npi
+    :param mr: matched_record i.e. the node record returned by the Orpheus API as a match for npi (dict)
     :param match_type: 'issn' or 'name'
-    :param test_mode:
+    :param match_type: 'issn' or 'name'
+    :param prompt_responses: dictionary that will be checked for responses before prompting user
     :return:
     '''
 
@@ -112,6 +117,31 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
             mr_name = mr_name.replace('({})'.format(npi.publisher.lower()), '')\
                 .replace('({})'.format(unidecode(npi.publisher).lower()), '').strip()
         return mr_name
+
+    def check_issn_fields(npi):
+        '''
+        A function to check if npi contains any ISSN that is not already represented in mr or synonyms.
+        :return: 'both' if npi contains new ISSNs in both issn and eissn fields; 'issn' if the value in the issn field
+            is new; 'eissn' if the value in the eissn field is new; None if both ISSNs are already represented in
+            Orpheus
+        '''
+        new_issn = False
+        new_eissn = False
+        if (npi.issn and not orpheus_client.node_issn2records(npi.issn)):
+            logger.debug('npi.issn ({}) not found in Orpheus; add it'.format(npi.issn))
+            new_issn = True
+        if (npi.eissn and not orpheus_client.node_issn2records(npi.eissn)):
+            logger.debug('npi.eissn ({}) not found in Orpheus; add it'.format(npi.eissn))
+            new_eissn = True
+
+        if new_issn and new_eissn:
+            return 'both'
+        elif new_issn:
+            return 'issn'
+        elif new_eissn:
+            return 'eissn'
+        else:
+            return None
 
     def populate_npi_with_mr(npi, mr):
         '''
@@ -189,7 +219,8 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
                 create_synonym = True
         return create_synonym
 
-    def make_decision_on_name_match(npi, mr, mr_name, create_preferred_name, create_synonym):
+    def make_decision_on_name_match(npi, mr, mr_name, create_preferred, create_syn, update_existing,
+                                    prompt_responses=None, prompt_user=True):
         if npi.issn and npi.eissn and mr['issn'] and mr['eissn'] and \
             (npi.issn not in [mr['issn'], mr['eissn']]) and \
             (npi.eissn not in [mr['issn'], mr['eissn']]):
@@ -205,12 +236,12 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
                         (npi.eissn and (npi.eissn in [mr['issn'], mr['eissn']]))
                     ):
             logger.debug('Both queried and matched nodes have at least one matching issn. No new node is needed.')
-            create_preferred_name = False
+            create_preferred = False
         elif mr['publisher'] is None and (mr_name == npi.name.lower()):
             if mr['type'] == npi.type:
                 logger.debug('{} ({}) names are identical in Orpheus and queried node. Matched node contains no '
                          'publisher information. No new node is needed'.format(npi.type, npi.name))
-                create_preferred_name = False
+                create_preferred = False
             else:
                 logger.debug('Queried node is {} and matched node is {}. Create new node with '
                              'name += type'.format(npi.type, mr['type']))
@@ -219,7 +250,7 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
             if npi.publisher and (npi.publisher == mr['publisher']):
                 logger.debug('Journal ({}) and publisher ({}) names are identical in Orpheus and queried node. '
                              'No new node is needed'.format(npi.name, npi.publisher))
-                create_preferred_name = False
+                create_preferred = False
             elif npi.type != mr['type']:
                 logger.debug('Queried name ({}) is a {} and matched ({}) name is a {}. Append type to queried '
                              'name and create a new node'.format(npi.name, npi.type, mr_name, mr['type']))
@@ -227,16 +258,48 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
             else:
                 logger.debug('Journal names are identical, but publisher names are not. '
                              'Check if publisher names are synonyms')
-                create_preferred_name = check_publishers(npi, mr)
+                different_publishers = check_publishers(npi, mr)
+                if different_publishers:
+                    if prompt_user:
+                        print('Journal name "{}" matches an existing record in Orpheus, but '
+                              'the publishers are different ("{}" in new versus "{}" in existing '
+                              'record). I could not determine if these are two different but '
+                              'homonymous journals, or if it is a single journal that has changed publisher. '
+                              'What would you like me to do?\n'.format(npi.name, npi.publisher, mr['publisher']))
+                        print('(1) Create a new journal node (these are different journals)')
+                        print('(2) Update publisher of existing record (single journal, publisher has changed)')
+                        print('(3) This is the same journal, but Orpheus already has the correct publisher')
+                        try:
+                            user_response = prompt_responses[npi.name]
+                        except KeyError:
+                            user_response = None
+                            while user_response not in ['1', '2', '3']:
+                                user_response = input('Please enter the number of your chosen action (or Ctrl+C to abort):')
+                            logger.debug('Prompted user for decision; response received: {}'.format(user_response))
+                        if user_response == '1':
+                            create_preferred = True
+                        elif user_response == '2':
+                            create_preferred = False
+                            update_existing = True
+                        elif user_response == '3':
+                            create_preferred = False
+                            update_existing = False
+                        else:
+                            sys.exit('Fix me! This should be impossible!')
+                    else:
+                        create_preferred = True
         else:  # create a new synonym of match
-            create_synonym = True
+            create_syn = True
 
-        return create_preferred_name, create_synonym
+        return create_preferred, create_syn, update_existing
 
 
     if mr_id:
         create_preferred_name = True
         create_synonym = False
+        update_existing_record_publisher = False
+        update_existing_record_issn = check_issn_fields(npi)
+        update_existing_record_other_fields = False
         mr_name = check_mr_name(npi, mr)
         mr['publisher'] = get_mr_publisher_name(mr)
         logger.debug('mr_name: {}; mr_publisher: {}'.format(mr_name, mr['publisher']))
@@ -245,8 +308,11 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
             create_preferred_name = False
             create_synonym = make_decision_on_issn_match(npi, mr, mr_name, create_synonym)
         elif match_type == 'name':
-            create_preferred_name, create_synonym = make_decision_on_name_match(npi, mr, mr_name, create_preferred_name,
-                                                                                create_synonym)
+            create_preferred_name, create_synonym, update_existing_record_publisher = make_decision_on_name_match(npi, mr,
+                                                                  mr_name, create_preferred_name,
+                                                                  create_synonym,
+                                                                  update_existing_record_publisher,
+                                                                  prompt_responses=prompt_responses)
         else:
             logger.critical('match_type ({}) not supported'.format(match_type))
             sys.exit('ERROR generic_parser: match_type ({}) not supported'.format(match_type))
@@ -256,6 +322,7 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
         if create_preferred_name:
             logger.debug('Queried node and matched node are not duplicates or synonyms. Create a new preferred name')
             mr_id, mr = npi.create_node()
+            update_existing_record_issn = None
         elif create_synonym:
             logger.debug('Name in Orpheus ({}) does not match queried node name ({}). '
                          'Creating synonym'.format(mr_name, npi.name))
@@ -268,8 +335,57 @@ def act_on_orpheus_match(npi, mr_id, mr, match_type, test_mode=False):
             else:
                 logger.debug('NodeParser instance already set as synonym of Orpheus id {}'.format(npi.synonym_of))
             mr_id, mr = npi.create_node()
+            update_existing_record_issn = None
+        elif update_existing_record_publisher:
+            logger.debug('Existing journal in Orpheus ({}) has changed publisher. '
+                         'Updating existing node'.format(mr_name))
+            if mr['name_status'] != 'PRIMARY':
+                mr_id = mr['synonym_of']
+            orpheus_client.update_node(mr_id, **{'parent': npi.publisher_node_id})
+            update_existing_record_other_fields = True
         else:
             logger.debug('No new node is needed')
+            update_existing_record_other_fields = True
+
+        if update_existing_record_issn:
+            logger.debug('Updating ISSN field(s) of existing record ({})'.format(update_existing_record_issn))
+            # if mr['name_status'] != 'PRIMARY':
+            #     mr_id = mr['synonym_of']
+            if update_existing_record_issn == 'both':
+                if not mr['issn'] and not mr['eissn']:
+                    orpheus_client.update_node(mr['id'], **{'issn': npi.issn, 'eissn': npi.eissn})
+                else:
+                    orpheus_client.update_node(mr['id'], **{'issn': npi.issn, 'eissn': npi.eissn})
+                    logger.warning('At least one of the ISSN fields of Orpheus record {} (issn: {}; eissn: {}) was '
+                                   'overwritten by new values (issn: {}; eissn: {})'.format(mr['id'],
+                                                                                            mr['issn'], mr['eissn'],
+                                                                                            npi.issn, npi.eissn))
+            elif update_existing_record_issn in ['issn', 'eissn']:
+                if not mr['issn'] and not mr['eissn']:
+                    target_field = update_existing_record_issn
+                elif mr['issn'] and not mr['eissn']:
+                    target_field = 'eissn'
+                elif not mr['issn'] and mr['eissn']:
+                    target_field = 'issn'
+                elif mr['issn'] and mr['eissn']:
+                    target_field = 'eissn'
+                    logger.warning('eissn field of Orpheus record {} (issn: {}; eissn: {}) was '
+                                   'overwritten by a new value (issn: {}; eissn: {})'.format(mr['id'],
+                                                                                            mr['issn'], mr['eissn'],
+                                                                                            npi.issn, npi.eissn))
+                if update_existing_record_issn == 'issn':
+                    source_data = npi.issn
+                elif update_existing_record_issn == 'eissn':
+                    source_data = npi.eissn
+
+                logger.debug('mr[id]: {}; target_field: {}; source_data: {}'.format(mr['id'],
+                                                                                    target_field, source_data))
+                orpheus_client.update_node(mr['id'], **{target_field: source_data})
+
+        if update_existing_record_other_fields:
+            if npi.romeo_id or npi.epmc_url:
+                logger.debug('Updating romeo_id and/or epmc_url field(s) of existing record ({})'.format(update_existing_record_issn))
+                orpheus_client.update_node(mr_id, **{'romeo_id': npi.romeo_id, 'epmc_url': npi.epmc_url})
 
     else:
         logger.debug(
@@ -428,7 +544,7 @@ class SourceParser:
         self.url = url
     def match_or_create_source(self):
         r = orpheus_client.get_sources4name(self.description)
-        if r.ok and r.json():
+        if r.json()['count'] > 0:
             return r.json()['results'][0]['id']
         else:
             r = orpheus_client.create_source(self.description, type=self.type, url_field=self.url)
@@ -472,7 +588,8 @@ class NodeParser:
     '''
 
     def __init__(self, name='', name_status='PRIMARY', issn='', eissn='', publisher='', publisher_node_record=None,
-                 publisher_node_id=None, romeo_id=None, synonym_of=None, source='', type='JOURNAL', url=None):
+                 publisher_node_id=None, romeo_id=None, synonym_of=None, source='', type='JOURNAL', url=None,
+                 epmc_url=None):
         if len(name) > 200:
             name = name[:197] + '...'
         self.name = convert_illegal_characters(name).replace('  ', ' ').replace('  ', ' ')
@@ -483,6 +600,7 @@ class NodeParser:
         if url and ('_' in url): # ignore url if it contains underscores; Django does not support them
             url = None
         self.url = url
+        self.epmc_url = epmc_url
         self.romeo_id = romeo_id
         self.synonym_of = synonym_of
         self.source = source
@@ -821,7 +939,7 @@ class NodeParser:
         r = orpheus_client.create_node(self.name, self.name_status, self.type, self.source,
                                        **{'issn': self.issn, 'eissn': self.eissn, 'url': self.url,
                                           'parent': self.publisher_node_id, 'romeo_id': self.romeo_id,
-                                          'synonym_of': self.synonym_of})
+                                          'synonym_of': self.synonym_of, 'epmc_url': self.epmc_url})
         new_node_record = None
         new_node_id = None
         try:
@@ -1005,7 +1123,7 @@ class NodeParser:
 
         :param link_to_preferred_name: if True (default), attach policy to preferred name
         :param policy_type: string indicating the type of policy that will be dealt with. Options are: 'oa_status',
-            'green', 'gold'
+            'green', 'gold', 'deal'
         :return a dictionary containing a boolean 'new_policy_created' and a dictionary 'updated_data' listing
             all data that was updated
         '''
@@ -1013,7 +1131,34 @@ class NodeParser:
             self.outer = outer
             self.policy_type = policy_type
 
-        def match(self, link_to_preferred_name=True, force_update=False, **kwargs):
+        def match(self, link_to_preferred_name=True, force_update=False, supersede_existing=True, **kwargs):
+
+            def supersede_policies(policies, update_function, prompt_user=True):
+                data_to_update = {'superseded': True, 'superseded_date': date.today().isoformat()}
+                cut_off = datetime.now(timezone.utc) - relativedelta(days=10)
+                for policy in policies.json()['results']:
+                    if parser.parse(policy['created']) < cut_off:
+                        supersede = True
+                        if policy['vetted'] and prompt_user:
+                            confirmation = input('Are you sure you want to supersede vetted '
+                                                 'policy {}?'.format(policy))
+                            if confirmation not in ['y', 'Y']:
+                                supersede = False
+                        if supersede:
+                            r = update_function(policy['id'], **data_to_update)
+                            if not r.ok:
+                                sys.exit(
+                                    'ERROR trying to update '
+                                    'OA status {}:\n{}'.format(matching_server_policy['id'], r.text))
+                            else:
+                                response['updated_data'].update(data_to_update)
+                        else:
+                            logger.debug('Skipped superseding policy {}'.format(policy))
+                    else:
+                        logger.debug('Policy {} was created less than {} days ago; '
+                                     'skipped superseding it'.format(policy, cut_off))
+
+
             response = {
                 'new_policy_created': False,
                 'updated_data': {}
@@ -1060,6 +1205,14 @@ class NodeParser:
                 get_function = orpheus_client.get_gold_policies4node_id
                 create_function = orpheus_client.create_gold_policy
                 update_function = orpheus_client.update_gold_policy
+            elif self.policy_type == 'deal':
+                get_function = orpheus_client.get_deals4node_id
+                create_function = orpheus_client.create_deal
+                update_function = orpheus_client.update_deal
+            elif self.policy_type == 'epmc':
+                get_function = orpheus_client.get_epmc4node_id
+                create_function = orpheus_client.create_epmc
+                update_function = orpheus_client.update_epmc
             else:
                 sys.exit('ERROR: {} is not a recognised policy_type'.format(self.policy_type))
             server_policies = get_function(target_node)
@@ -1067,7 +1220,7 @@ class NodeParser:
             if server_policies.ok:
                 for policy in server_policies.json()['results']:
                     # logger.debug('policy: {}'.format(policy))
-                    if self.policy_type in ['oa_status', 'gold']:
+                    if self.policy_type in ['oa_status', 'gold', 'deal']:
                         if policy['source'] == self.outer.source:
                             matching_server_policy = policy
                     elif self.policy_type == 'green':
@@ -1087,8 +1240,22 @@ class NodeParser:
                                                               **kwargs)
                 elif self.policy_type == 'gold':
                     resp = create_function(target_node, **kwargs)
+                elif self.policy_type == 'deal':
+                    logger.debug(kwargs)
+                    applies_to = kwargs.pop('applies_to')
+                    deal_type = kwargs.pop('type')
+                    resp = create_function(target_node, applies_to, deal_type,
+                                           self.outer.source, **kwargs)
+                elif self.policy_type == 'epmc':
+                    logger.debug(kwargs)
+                    participation_level = kwargs.pop('participation_level')
+                    open_licence = kwargs.pop('open_licence')
+                    resp = create_function(target_node, participation_level, open_licence,
+                                           self.outer.source, **kwargs)
                 logger.debug('resp.text: {}'.format(resp.text))
                 response['new_policy_created'] = True
+                if supersede_existing:
+                    supersede_policies(server_policies, update_function)
             else:
                 data_to_update = {}
                 for key, client_data in kwargs.items():
@@ -1100,12 +1267,15 @@ class NodeParser:
                             if key in ['apc_value_min', 'apc_value_max']:
                                 server_data = float(server_data)
                                 client_data = float(client_data)
-                            if key in ['outlet']:
+                            elif key in ['outlet']:
                                 server_data.sort()
                                 client_data.sort()
-                            if key in ['version_embargo_months']:
+                            elif key in ['version_embargo_months']:
                                 server_data = str(server_data)
                                 client_data = str(client_data)
+                            elif key in ['licence_options']:
+                                server_data.sort()
+                                client_data.sort()
                             if server_data != client_data:
                                 if force_update == True:
                                     data_to_update.update({key: client_data})

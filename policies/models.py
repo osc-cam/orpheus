@@ -309,7 +309,7 @@ class Node(models.Model):
     '''
     A node can be a Publisher, Conference or Journal depending on the value of node_type
     '''
-    name = models.CharField(max_length=200, unique=True, validators=[node_name_validator])
+    name = models.CharField(max_length=300, unique=True, validators=[node_name_validator])
     # Case-insensitive uniqueness of the name field was enforced in the database backend,
     # via a unique index; the index was created by migration 0003, using migrations.RunSQL, as
     # shown below (see https://stackoverflow.com/questions/7773341/case-insensitive-unique-model-fields-in-django and
@@ -587,6 +587,24 @@ class Node(models.Model):
             policies.append(GoldPolicy.objects.filter(node=s.id))
         return policies
 
+    def get_synonyms_deal(self):
+        '''
+        Fetches deals associated with synonyms. Returns a list of querysets, one for each synonym.
+        '''
+        deals = []
+        for s in self.get_synonyms():
+            deals.append(Deal.objects.filter(node=s.id))
+        return deals
+
+    def get_synonyms_epmc_policy(self):
+        '''
+        Fetches EPMC policies associated with synonyms. Returns a list of querysets, one for each synonym.
+        '''
+        epmc_policies = []
+        for s in self.get_synonyms():
+            epmc_policies.append(Epmc.objects.filter(node=s.id))
+        return epmc_policies
+
     def get_preferred_name_oa_status(self):
         '''
         Fetches oa status associated with the preferred name
@@ -632,6 +650,30 @@ class Node(models.Model):
             return GoldPolicy.objects.filter(node=self.id)
         elif self.synonym_of:
             return GoldPolicy.objects.filter(node=self.synonym_of.id)
+        else:
+            sys.exit('{} is not a preferred name or a synonym'.format(self))
+
+    def get_preferred_name_deal(self):
+        '''
+        Fetches deals associated with the preferred name
+        :return: A queryset of policies
+        '''
+        if self.name_status == 'PRIMARY':
+            return Deal.objects.filter(node=self.id)
+        elif self.synonym_of:
+            return Deal.objects.filter(node=self.synonym_of.id)
+        else:
+            sys.exit('{} is not a preferred name or a synonym'.format(self))
+
+    def get_preferred_name_epmc_policy(self):
+        '''
+        Fetches EPMC policies associated with the preferred name
+        :return: A queryset of policies
+        '''
+        if self.name_status == 'PRIMARY':
+            return Epmc.objects.filter(node=self.id)
+        elif self.synonym_of:
+            return Epmc.objects.filter(node=self.synonym_of.id)
         else:
             sys.exit('{} is not a preferred name or a synonym'.format(self))
 
@@ -818,6 +860,7 @@ class Node(models.Model):
                     return '{}{}'.format(currency, int(round(apc_max)))
         return None
 
+    @property
     def zd_commitment_guidance(self):
         '''
         Used by the API. Human-friendly financial commitment
@@ -852,7 +895,62 @@ class Node(models.Model):
                 return '{} ({})'.format(commit, commit / 2)
         return None
 
+    @property
+    def zd_deal(self):
+        '''
+        Used by the API. Deals or discounts associated with this node
+        :return:
+        '''
+        if self.most_reliable_deal:
+            dt = self.most_reliable_deal['type']
+            if dt == 'SPRINGER COMPACT':
+                return 'Springer Compact'
+            elif dt == 'NESLi vouchers':
+                return 'NESLi vouchers'
+        return None
 
+    @property
+    def zd_epmc_participation(self):
+        '''
+        Used by the API. EPMC participation of this node
+        :return:
+        '''
+        if self.most_reliable_epmc_policy:
+            if self.most_reliable_epmc_policy['participation_level']:
+                return self.most_reliable_epmc_policy['participation_level'].capitalize()
+        return None
+
+    @property
+    def zd_epmc_embargo_months(self):
+        '''
+        Used by the API. EPMC embargo for publisher deposit for this node
+        :return:
+        '''
+        if self.most_reliable_epmc_policy:
+            return self.most_reliable_epmc_policy['embargo_months']
+        return None
+
+    @property
+    def zd_epmc_open_licence(self):
+        '''
+        Used by the API. EPMC licence information for this node
+        :return:
+        '''
+        if self.most_reliable_epmc_policy:
+            if self.most_reliable_epmc_policy['open_licence']:
+                return self.most_reliable_epmc_policy['open_licence'].capitalize()
+        return None
+
+    @property
+    def zd_epmc_deposit_status(self):
+        '''
+        Used by the API. EPMC deposit status of this node
+        :return:
+        '''
+        if self.most_reliable_epmc_policy:
+            if self.most_reliable_epmc_policy['deposit_status']:
+                return self.most_reliable_epmc_policy['deposit_status'].capitalize()
+        return None
 
     @property
     def zd_gold_licence_options(self):
@@ -871,6 +969,151 @@ class Node(models.Model):
                 return [zd_gold_licence_tag(l) for l in gold['licence_options']]
         return None
     # endregion
+
+    @property
+    def most_reliable_deal(self):
+        '''
+        Used by the API. Calculated field containing the primary deal associated to a journal
+        '''
+
+        def process_policy_queryset(queryset, output_dict, pass_counter, restrict_to_vetted=False):
+            def pass_counter_str(int):
+                if int in [1, 2]:
+                    return 'preferred name'
+                elif int in [3, 4]:
+                    return 'synonym'
+                elif int in [5, 6]:
+                    return 'parent (publisher)'
+                elif int in [7, 8]:
+                    return 'synonym parent (publisher)'
+
+            for q in queryset:
+                if q.superseded == False:
+                    if (q.vetted == True) or (restrict_to_vetted == False):
+                        if output_dict == None:  # Avoid overwriting a more reliable policy
+                            output_dict = {
+                                "id": q.id,
+                                "source": q.source.description,
+                                "name": q.name,
+                                "applies_to": q.applies_to,
+                                "type": q.type,
+                                "vetted": q.vetted,
+                                "vetted_date": q.vetted_date,
+                                "last_checked": q.last_checked,
+                                "superseded": q.superseded,
+                                "superseded_date": q.superseded_date,
+                                "created": q.created,
+                                "updated": q.updated,
+                                "node": q.node.id,
+                                "provenance": pass_counter_str(pass_counter)
+                            }
+
+            return output_dict
+
+        output_policy = None
+
+        pol = self.get_preferred_name_deal()
+        if pol:  # try first to obtain data from vetted policies directly linked to preferred name of node
+            output_policy = process_policy_queryset(pol, output_policy, 1, restrict_to_vetted=True)
+        if output_policy == None:  # if output_policy still null, try unvetted
+            output_policy = process_policy_queryset(pol, output_policy, 2)
+        if output_policy == None:  # if output_policy still null, try synonyms (vetted, then any)
+            synonym_pol = self.get_synonyms_deal()
+            if synonym_pol:
+                for queryset in synonym_pol:  # vetted
+                    output_policy = process_policy_queryset(queryset, output_policy, 3, restrict_to_vetted=True)
+                if output_policy == None:
+                    for queryset in synonym_pol:  # any
+                        output_policy = process_policy_queryset(queryset, output_policy, 4)
+        if output_policy == None:  # if output_policy still null, try direct parent (vetted, then any)
+            parent_pol = self.get_parent_deal_policies()
+            if parent_pol:  # vetted
+                output_policy = process_policy_queryset(parent_pol, output_policy, 5, restrict_to_vetted=True)
+                if output_policy == None:  # any
+                    output_policy = process_policy_queryset(parent_pol, output_policy, 6)
+        ### PARENTS OF SYNONYMS BLOCK BELOW NOT WORKING; NOT SURE WHY; COMMENTING IT OUT FOR NOW
+        # if output_policy == None:  # if output_policy still null, try parents of synonyms (vetted, then any)
+        #     synonym_parent_pol = self.get_synonyms_parents_oa_stata()
+        #     if synonym_parent_pol: #vetted
+        #         output_policy = process_policy_queryset(synonym_parent_pol, output_policy, 7, restrict_to_vetted=True)
+        #         print('Returning:', output_policy)
+        #         if output_policy == None: # any
+        #             output_policy = process_policy_queryset(synonym_parent_pol, output_policy, 8)
+
+        return output_policy
+
+    @property
+    def most_reliable_epmc_policy(self):
+        '''
+        Used by the API. Calculated field containing the primary EPMC policy associated to a journal
+        '''
+
+        def process_policy_queryset(queryset, output_dict, pass_counter, restrict_to_vetted=False):
+            def pass_counter_str(int):
+                if int in [1, 2]:
+                    return 'preferred name'
+                elif int in [3, 4]:
+                    return 'synonym'
+                elif int in [5, 6]:
+                    return 'parent (publisher)'
+                elif int in [7, 8]:
+                    return 'synonym parent (publisher)'
+
+            for q in queryset:
+                if q.superseded == False:
+                    if (q.vetted == True) or (restrict_to_vetted == False):
+                        if output_dict == None:  # Avoid overwriting a more reliable policy
+                            output_dict = {
+                                "id": q.id,
+                                "source": q.source.description,
+                                "participation_level": q.participation_level,
+                                "embargo_months": q.embargo_months,
+                                "open_licence": q.open_licence,
+                                "deposit_status": q.deposit_status,
+                                "vetted": q.vetted,
+                                "vetted_date": q.vetted_date,
+                                "last_checked": q.last_checked,
+                                "superseded": q.superseded,
+                                "superseded_date": q.superseded_date,
+                                "created": q.created,
+                                "updated": q.updated,
+                                "node": q.node.id,
+                                "provenance": pass_counter_str(pass_counter)
+                            }
+
+            return output_dict
+
+        output_policy = None
+
+        pol = self.get_preferred_name_epmc_policy()
+        if pol:  # try first to obtain data from vetted policies directly linked to preferred name of node
+            output_policy = process_policy_queryset(pol, output_policy, 1, restrict_to_vetted=True)
+        if output_policy == None:  # if output_policy still null, try unvetted
+            output_policy = process_policy_queryset(pol, output_policy, 2)
+        if output_policy == None:  # if output_policy still null, try synonyms (vetted, then any)
+            synonym_pol = self.get_synonyms_epmc_policy()
+            if synonym_pol:
+                for queryset in synonym_pol:  # vetted
+                    output_policy = process_policy_queryset(queryset, output_policy, 3, restrict_to_vetted=True)
+                if output_policy == None:
+                    for queryset in synonym_pol:  # any
+                        output_policy = process_policy_queryset(queryset, output_policy, 4)
+        if output_policy == None:  # if output_policy still null, try direct parent (vetted, then any)
+            parent_pol = self.get_parent_epmc_policies()
+            if parent_pol:  # vetted
+                output_policy = process_policy_queryset(parent_pol, output_policy, 5, restrict_to_vetted=True)
+                if output_policy == None:  # any
+                    output_policy = process_policy_queryset(parent_pol, output_policy, 6)
+        ### PARENTS OF SYNONYMS BLOCK BELOW NOT WORKING; NOT SURE WHY; COMMENTING IT OUT FOR NOW
+        # if output_policy == None:  # if output_policy still null, try parents of synonyms (vetted, then any)
+        #     synonym_parent_pol = self.get_synonyms_parents_oa_stata()
+        #     if synonym_parent_pol: #vetted
+        #         output_policy = process_policy_queryset(synonym_parent_pol, output_policy, 7, restrict_to_vetted=True)
+        #         print('Returning:', output_policy)
+        #         if output_policy == None: # any
+        #             output_policy = process_policy_queryset(synonym_parent_pol, output_policy, 8)
+
+        return output_policy
 
     @property
     def most_reliable_oa_status(self):
@@ -1501,7 +1744,7 @@ class Epmc(models.Model):
     open_licence = models.CharField(max_length=10, choices=OA_CHOICES)
 
     NO_NEW = 'NO_NEW'
-    PREDECESSOR = 'PREDECESSOR'
+    PREDECESSOR = 'PRE'
     NOW_SELECT = 'NOW_SELECT'
     STATUS_CHOICES = (
         (NO_NEW, 'No new content'),

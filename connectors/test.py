@@ -4,10 +4,10 @@ import logging.config
 import os
 import sys
 import urllib.request
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 
 # import generic_parser
-# import orpheus_client
+import orpheus_client
 
 # setup django API
 os.environ['PYTHONPATH'] = "/home/asartori/orpheus"
@@ -34,6 +34,12 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 # add ch to logger
 # logger.addHandler(ch)
+
+r = orpheus_client.create_node('International Journal of Clinical and Health Psychology : IJCHP', 'SYNONYM', 'JOURNAL', '128',
+                                **{'issn': '1697-2600', 'eissn': '2174-0852', 'url': None, 'parent': 99682,
+                                   'romeo_id': None, 'synonym_of': 65471, 'epmc_url': 'http://europepmc.org/journals/3556/'})
+print(r.text)
+sys.exit()
 
 get_journals4id(409)
 

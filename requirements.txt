@@ -5,7 +5,7 @@ coreschema==0.0.4
 Django==1.11.18
 django-addanother==2.0.0
 django-appconf==1.0.2
-django-autocomplete-light==3.3.2
+django-autocomplete-light==3.3.0-rc6
 django-search-views==0.3.7
 django-select2==6.3.1
 djangorestframework==3.9.1

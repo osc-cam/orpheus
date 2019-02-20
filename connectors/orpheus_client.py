@@ -189,48 +189,57 @@ def romeo_id2records(romeo_id):
 # region get functions
 def get_node4node_id(node_id):
     url = ORPHEUS_URL + 'policies/api/nodes/?id=' + str(node_id)
-    return(orpheus_get(url).json()['results'][0])
+    return orpheus_get(url).json()['results'][0]
 
 def get_synonyms4node_id(node_id):
     url = ORPHEUS_URL + 'policies/api/nodes/attributes/?id=' + str(node_id)
     logger.debug(url)
-    return(orpheus_get(url).json()['results'][0])
+    return orpheus_get(url).json()['results'][0]
+
+
+def get_policies4node_id(node_id, model_string):
+    url = ORPHEUS_URL + 'policies/api/' + model_string + '/?node=' + str(node_id)
+    return orpheus_get(url)
 
 def get_gold_policies4node_id(node_id):
-    url = ORPHEUS_URL + 'policies/api/goldpolicies/?node=' + str(node_id)
-    return(orpheus_get(url))
+    return get_policies4node_id(node_id, 'goldpolicies')
 
 def get_green_policies4node_id(node_id):
-    url = ORPHEUS_URL + 'policies/api/greenpolicies/?node=' + str(node_id)
-    return(orpheus_get(url))
+    return get_policies4node_id(node_id, 'greenpolicies')
 
 def get_oastatus4node_id(node_id):
-    url = ORPHEUS_URL + 'policies/api/oastatus/?node=' + str(node_id)
-    return(orpheus_get(url))
+    return get_policies4node_id(node_id, 'oastatus')
+
+def get_deals4node_id(node_id):
+    return get_policies4node_id(node_id, 'deals')
+
+def get_epmc4node_id(node_id):
+    return get_policies4node_id(node_id, 'epmc')
+
+
+def get_objects4name(name, model_string, parameter='name'):
+    url = ORPHEUS_URL + 'policies/api/' + model_string + '/?' + parameter + '=' + escape_invalid_url(str(name))
+    return orpheus_get(url)
+
 
 def get_sources4name(name):
-    url = ORPHEUS_URL + 'policies/api/sources/?name=' + escape_invalid_url(str(name))
-    return(orpheus_get(url))
+    return get_objects4name(name, 'sources')
 
 def get_licence4shortname(name):
-    url = ORPHEUS_URL + 'policies/api/licences/?shortname=' + escape_invalid_url(str(name))
-    return(orpheus_get(url))
+    return get_objects4name(name, 'licences', 'shortname')
 
 def get_licence4longname(name):
-    url = ORPHEUS_URL + 'policies/api/licences/?longname=' + escape_invalid_url(str(name))
-    return(orpheus_get(url))
+    return get_objects4name(name, 'licences', 'longname')
 
 def get_outlet4name(name):
-    url = ORPHEUS_URL + 'policies/api/outlets/?name=' + escape_invalid_url(str(name))
-    return(orpheus_get(url))
+    return get_objects4name(name, 'outlets')
 
 def get_version4shortname(name):
-    url = ORPHEUS_URL + 'policies/api/versions/?shortname=' + escape_invalid_url(str(name))
-    return(orpheus_get(url))
+    return get_objects4name(name, 'versions', 'shortname')
 
 def get_version4longname(name):
-    url = ORPHEUS_URL + 'policies/api/versions/?longname=' + escape_invalid_url(str(name))
-    return(orpheus_get(url))
+    return get_objects4name(name, 'versions', 'longname')
+
 
 def get_gold_policies():
     url = ORPHEUS_URL + 'policies/api/goldpolicies/'
@@ -280,11 +289,6 @@ def create_node(node_name, node_name_status, node_type, node_source, node_vetted
     # logger.debug(data)
     return(orpheus_post(url, data, **validated_kwargs))
 
-def update_node(node_id, **kwargs):
-    url = ORPHEUS_URL + 'policies/api/nodes/' + str(node_id) + '/'
-    data = {}
-    return(orpheus_patch(url, data, **kwargs))
-
 def create_licence(short_name, long_name=None, url_field=None):
     url = ORPHEUS_URL + 'policies/api/licences/'
     data = {
@@ -314,11 +318,6 @@ def create_oastatus(node_id, oa_status, source, vetted=False, **kwargs):
     }
     return (orpheus_post(url, data, **kwargs))
 
-def update_oastatus(policy_id, **kwargs):
-    url = ORPHEUS_URL + 'policies/api/oastatus/' + str(policy_id) + '/'
-    data = {}
-    return(orpheus_patch(url, data, **kwargs))
-
 def create_green_policy(node_id, outlet_list, version_list, source, vetted=False, **kwargs):
     url = ORPHEUS_URL + 'policies/api/greenpolicies/'
     data = {
@@ -330,11 +329,6 @@ def create_green_policy(node_id, outlet_list, version_list, source, vetted=False
     }
     return (orpheus_post(url, data, **kwargs))
 
-def update_green_policy(green_policy_id, **kwargs):
-    url = ORPHEUS_URL + 'policies/api/greenpolicies/' + str(green_policy_id) + '/'
-    data = {}
-    return(orpheus_patch(url, data, **kwargs))
-
 def create_gold_policy(node_id, source, vetted=False, **kwargs):
     url = ORPHEUS_URL + 'policies/api/goldpolicies/'
     logger.debug(kwargs)
@@ -345,10 +339,57 @@ def create_gold_policy(node_id, source, vetted=False, **kwargs):
     }
     return (orpheus_post(url, data, **kwargs))
 
-def update_gold_policy(gold_policy_id, **kwargs):
-    url = ORPHEUS_URL + 'policies/api/goldpolicies/' + str(gold_policy_id) + '/'
+def create_deal(node_id,
+                applies_to, type,
+                source, vetted=False, **kwargs):
+    url = ORPHEUS_URL + 'policies/api/deals/'
+    logger.debug(kwargs)
+    data = {
+        'node': node_id,
+        'applies_to': applies_to,
+        'type': type,
+        'source': source,
+        'vetted': vetted
+    }
+    return (orpheus_post(url, data, **kwargs))
+
+def create_epmc(node_id, participation_level, open_licence, source, vetted=False, **kwargs):
+    url = ORPHEUS_URL + 'policies/api/epmc/'
+    logger.debug(kwargs)
+    data = {
+        'node': node_id,
+        'participation_level': participation_level,
+        'open_licence': open_licence,
+        'source': source,
+        'vetted': vetted
+    }
+    return (orpheus_post(url, data, **kwargs))
+
+def update_object(object_id, url_string, **kwargs):
+    '''
+    Generic update function
+    '''
+    url = ORPHEUS_URL + 'policies/api/' + url_string + '/' + str(object_id) + '/'
     data = {}
-    return(orpheus_patch(url, data, **kwargs))
+    return orpheus_patch(url, data, **kwargs)
+
+def update_node(node_id, **kwargs):
+    return update_object(node_id, 'nodes', **kwargs)
+
+def update_oastatus(policy_id, **kwargs):
+    return update_object(policy_id, 'oastatus', **kwargs)
+
+def update_green_policy(policy_id, **kwargs):
+    return update_object(policy_id, 'greenpolicies', **kwargs)
+
+def update_gold_policy(policy_id, **kwargs):
+    return update_object(policy_id, 'goldpolicies', **kwargs)
+
+def update_deal(policy_id, **kwargs):
+    return update_object(policy_id, 'deals', **kwargs)
+
+def update_epmc(policy_id, **kwargs):
+    return update_object(policy_id, 'epmc', **kwargs)
 # endregion
 
 # region delete functions
