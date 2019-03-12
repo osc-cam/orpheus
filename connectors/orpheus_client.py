@@ -10,10 +10,7 @@ import sys
 import time
 import urllib.parse
 
-try:
-    from keys_local import ORPHEUS_URL, CLIENT_USERNAME, CLIENT_PASSWORD
-except ImportError:
-    sys.exit('keys_local.py file could not be found')
+from .keys_local import ORPHEUS_URL, CLIENT_USERNAME, CLIENT_PASSWORD
 
 # create logger
 logger = logging.getLogger(__name__)

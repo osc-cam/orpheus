@@ -125,10 +125,11 @@ class CambridgeSerializer(serializers.ModelSerializer):
     zd_epmc_open_licence = serializers.ReadOnlyField()
     zd_epmc_deposit_status = serializers.ReadOnlyField()
     romeo_url = serializers.ReadOnlyField()
+    preferred_name = serializers.ReadOnlyField()
 
     class Meta:
         model = models.Node
-        fields = ['id', 'name', 'issn', 'eissn', 'url', 'apollo_am_embargo_months', 'apollo_vor_embargo_months',
+        fields = ['id', 'name', 'preferred_name', 'issn', 'eissn', 'url', 'apollo_am_embargo_months', 'apollo_vor_embargo_months',
                   'zd_publisher', 'zd_green_allowed_version', 'zd_embargo_duration', 'zd_green_licence',
                   'zd_journal_oa_status', 'zd_apc_range', 'zd_gold_licence_options', 'zd_commitment_guidance',
                   'zd_deal', 'zd_epmc_participation', 'zd_epmc_embargo_months', 'zd_epmc_open_licence',

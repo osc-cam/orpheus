@@ -721,6 +721,20 @@ class Node(models.Model):
         return 'unknown'
 
     @property
+    def preferred_name(self):
+        '''
+        Used by the API. Preferred name linked to this node
+        :return:
+        '''
+        if self.name_status == 'PRIMARY':
+            out_name = self.name
+        elif self.synonym_of:
+            out_name = self.synonym_of.name
+        else:
+            sys.exit('{} is not a preferred name or a synonym'.format(self))
+        return out_name.replace('(Journal)', '').strip()
+
+    @property
     def zd_publisher(self):
         '''
         Used by the API. Human-friendly publisher name
