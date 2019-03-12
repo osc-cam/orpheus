@@ -1,26 +1,36 @@
 \contentsline {section}{\numberline {1}Introduction}{2}{section.1}
-\contentsline {section}{\numberline {2}Frontend for editors}{2}{section.2}
-\contentsline {subsection}{\numberline {2.1}List views}{3}{subsection.2.1}
-\contentsline {subsubsection}{\numberline {2.1.1}General list views}{3}{subsubsection.2.1.1}
-\contentsline {paragraph}{Journals}{3}{section*.3}
-\contentsline {paragraph}{Publishers}{3}{section*.4}
-\contentsline {paragraph}{Conferences}{3}{section*.5}
-\contentsline {paragraph}{Sources}{3}{section*.6}
-\contentsline {subsubsection}{\numberline {2.1.2}Curatorial list views}{4}{subsubsection.2.1.2}
-\contentsline {paragraph}{Problematic policies}{4}{section*.7}
-\contentsline {paragraph}{Children of synonyms}{4}{section*.8}
-\contentsline {paragraph}{Children of non-publisher nodes}{4}{section*.9}
-\contentsline {paragraph}{Grandchildren}{4}{section*.10}
-\contentsline {paragraph}{Synonyms of synonyms}{4}{section*.11}
-\contentsline {paragraph}{Synonyms with linked policies}{4}{section*.12}
-\contentsline {subsubsection}{\numberline {2.1.3}Search box behaviour}{5}{subsubsection.2.1.3}
-\contentsline {subsection}{\numberline {2.2}Detail views}{5}{subsection.2.2}
-\contentsline {subsection}{\numberline {2.3}Quality indicators}{5}{subsection.2.3}
-\contentsline {section}{\numberline {3}Frontend for administrators}{8}{section.3}
-\contentsline {section}{\numberline {4}Strategy for quickly expanding coverage of self-archiving policies}{10}{section.4}
-\contentsline {subsection}{\numberline {4.1}Pre-populated database}{10}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}General use and editing workflow}{11}{subsection.4.2}
-\contentsline {section}{\numberline {5}Cambridge-specific features and integrations}{15}{section.5}
-\contentsline {subsection}{\numberline {5.1}Integration with Zendesk (Orpheus lookup application)}{15}{subsection.5.1}
-\contentsline {section}{\numberline {6}Getting help}{15}{section.6}
-\contentsline {section}{\numberline {7}Reporting bugs, requesting new features}{15}{section.7}
+\contentsline {section}{\numberline {2}Installation}{2}{section.2}
+\contentsline {subsection}{\numberline {2.1}Obtaining a copy of Orpheus}{2}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Setting up a database backend}{2}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Creating and activating a virtual environment (optional, but recommended)}{3}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Installing the dependencies}{3}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.5}Applying migrations}{3}{subsection.2.5}
+\contentsline {subsection}{\numberline {2.6}Creating a superuser}{3}{subsection.2.6}
+\contentsline {subsection}{\numberline {2.7}Testing your Installation}{4}{subsection.2.7}
+\contentsline {subsection}{\numberline {2.8}Populating auxiliary tables}{4}{subsection.2.8}
+\contentsline {subsection}{\numberline {2.9}Importing some data}{4}{subsection.2.9}
+\contentsline {section}{\numberline {3}Frontend for editors}{5}{section.3}
+\contentsline {subsection}{\numberline {3.1}List views}{6}{subsection.3.1}
+\contentsline {subsubsection}{\numberline {3.1.1}General list views}{6}{subsubsection.3.1.1}
+\contentsline {paragraph}{Journals}{6}{section*.3}
+\contentsline {paragraph}{Publishers}{6}{section*.4}
+\contentsline {paragraph}{Conferences}{6}{section*.5}
+\contentsline {paragraph}{Sources}{6}{section*.6}
+\contentsline {subsubsection}{\numberline {3.1.2}Curatorial list views}{6}{subsubsection.3.1.2}
+\contentsline {paragraph}{Problematic policies}{6}{section*.7}
+\contentsline {paragraph}{Children of synonyms}{7}{section*.8}
+\contentsline {paragraph}{Children of non-publisher nodes}{7}{section*.9}
+\contentsline {paragraph}{Grandchildren}{7}{section*.10}
+\contentsline {paragraph}{Synonyms of synonyms}{7}{section*.11}
+\contentsline {paragraph}{Synonyms with linked policies}{7}{section*.12}
+\contentsline {subsubsection}{\numberline {3.1.3}Search box behaviour}{7}{subsubsection.3.1.3}
+\contentsline {subsection}{\numberline {3.2}Detail views}{8}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Quality indicators}{8}{subsection.3.3}
+\contentsline {section}{\numberline {4}Frontend for administrators}{11}{section.4}
+\contentsline {section}{\numberline {5}Strategy for quickly expanding coverage of self-archiving policies}{11}{section.5}
+\contentsline {subsection}{\numberline {5.1}Pre-populated database}{13}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}General use and editing workflow}{13}{subsection.5.2}
+\contentsline {section}{\numberline {6}Cambridge-specific features and integrations}{15}{section.6}
+\contentsline {subsection}{\numberline {6.1}Integration with Zendesk (Orpheus lookup application)}{15}{subsection.6.1}
+\contentsline {section}{\numberline {7}Getting help}{18}{section.7}
+\contentsline {section}{\numberline {8}Reporting bugs, requesting new features}{19}{section.8}

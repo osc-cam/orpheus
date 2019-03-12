@@ -41,32 +41,12 @@
   \normalsize University of Cambridge\\[-1mm]
   \normalsize Office of Scholarly Communication}
 \maketitle
-% \begin{titlepage}
-%   \centering
-%   \includegraphics[width=0.8\textwidth]{orpheus-logo-final}
-%   \vfill
-% %   \resizebox{0.6\linewidth}{!}{User manual}
-% %   {\Huge
-% %       User manual\\
-% %       \vskip2cm
-% %   } 
-%   {\Huge
-%       André Sartori\\
-%       \href{mailto:afs25@cam.ac.uk}{afs25@cam.ac.uk}
-%       \vskip1cm
-%   }
-%   {\LARGE
-%       \today  
-%   }
-%   \vfill
-%   \vfill
-%   \includegraphics[width=0.48\textwidth]{Cambridge-University-CMYK}
-% \end{titlepage}
+
 \tableofcontents{}
 
 \section{Introduction}
 
-Orpheus is a database of academic journals and their self-archiving policies written in \href{https://www.djangoproject.com}{Django}. It features web frontends for users and administrators and a RESTful API, tailored for integration with DSpace and other institutional repository platforms.
+Orpheus is a database of academic journals and their policies written in \href{https://www.djangoproject.com}{Django}. It features web frontends for users and administrators and a RESTful API, tailored for integration with DSpace and other institutional repository platforms.
 
 \section{Installation}
 
@@ -99,7 +79,7 @@ To create and activate new virtual environment for Orpheus, issue the following 
   $ source orpheus-env/bin/activate
 \end{lstlisting}
 
-\subsection{Install the dependencies}
+\subsection{Installing the dependencies}
 
 To install all Orpheus dependencies, navigate to the folder containing the code you downloaded or cloned from GitHub and issue the command:
 
@@ -107,7 +87,7 @@ To install all Orpheus dependencies, navigate to the folder containing the code 
   $ pip3 install -r requirements.txt
  \end{lstlisting}
 
-\subsection{Apply migrations}
+\subsection{Applying migrations}
 
 To create the database fields that Orpheus will need to store its data, apply migrations by running:
 
@@ -115,7 +95,7 @@ To create the database fields that Orpheus will need to store its data, apply mi
   $ python3 manage.py migrate
  \end{lstlisting}
 
-\subsection{Create a superuser}
+\subsection{Creating a superuser}
 
 You will need at least one user who can login to Orpheus, so run the following command to create it:
 
@@ -123,7 +103,7 @@ You will need at least one user who can login to Orpheus, so run the following c
   $ python3 manage.py createsuperuser
  \end{lstlisting} 
  
-\subsection{Test your Installation}
+\subsection{Testing your Installation}
 
 You should now have a functional development instance of Orpheus! To test it, issue the command:
 
@@ -133,7 +113,30 @@ You should now have a functional development instance of Orpheus! To test it, is
  
 And then point your favourite browser to \url{http://127.0.0.1:8000/}. You should see Orpheus' homepage.
 
+\subsection{Populating auxiliary tables}
+
+Some of Orpheus' tables include fields that are populated using values stored in four small, auxiliary tables (\dbtable{Licence}, \dbtable{Outlet}, \dbtable{Responsibility} and \dbtable{Version}). Unless these four tables contain at least one value each, some of forms in the \hyperref[sec-frontend-for-editors]{frontend for editors} will not work.
+
+To populate these four tables you may either use the \hyperref[sec-frontend-for-administrators]{frontend for administrators} or you may import the JSON files that come with the Orpheus source code by issuing the command:\footnote{for more details, see \url{https://docs.djangoproject.com/en/1.11/howto/initial-data/}}
+
+\begin{lstlisting}
+  $ python3 manage.py loaddata Licence Outlet \
+    Responsibility Version
+\end{lstlisting}
+
+\subsection{Importing some data}
+
+Unless you intend to populate the database manually, you will now probably want to bulk import some data into your Orpheus instance. The \path{connectors} folder of the Orpheus source code contains a number of Python parsers that can be used to import large datasets made available by a number of publishers and projects. Editing and running these parsers is the recommended method of bulk populating and curating the database. 
+
+However, if you just want to load as much data as possible to your Orpheus instance for testing purposes, you may import JSON files providing a recent snapshot of most of the database hosted by the University of Cambridge. You can do so by issuing the command (it will take a while to complete):
+
+\begin{lstlisting}
+  $ python3 manage.py loaddata Source Node Deal Epmc \
+    GoldPolicy GreenPolicy OaStatus
+\end{lstlisting}
+
 \section{Frontend for editors}
+\label{sec-frontend-for-editors}
 
 The Orpheus web frontend for editors is available at \url{https://orpheus-prod.lib.cam.ac.uk}. From the \view{homepage}, users can use the \icomponent{navigation bar} (\figp{\ref{fig-home}}A) to navigate to one of the \viewtype{list views} described in section \vref{sec-list-views}. The \view{homepage} also summarises the contents of database in a ``contents at a glance'' table (\figp{\ref{fig-home}}B).
 
@@ -292,6 +295,7 @@ Orpheus uses the fields above to provide users with an icon that visually indica
 \end{warn}
 
 \section{Frontend for administrators}
+\label{sec-frontend-for-administrators}
 The Orpheus web frontend for administrators, available at \url{https://orpheus-prod.lib.cam.ac.uk/admin}, provides tools for user management and editing of database tables that cannot be altered by editors (\figp{\vref{fig-admin}}). For example, new values for the tables \dbtable{Licences} and \dbtable{Outlets}, which are used to populate value lists in forms used by editors, can be added via this interface.
 
 \begin{warn}
